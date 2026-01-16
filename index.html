@@ -6,179 +6,411 @@
     <title>Gestión Bomberos - App</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#b11217">
-    <link rel="apple-touch-icon" href="icon.jpg">
-    <link rel="icon" type="image/jpg" href="icon.jpg">
+    <meta name="theme-color" content="#b71c1c">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- ESTILOS GENERALES (BASE) --- */
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #121212; color: #e0e0e0; scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
-        
-        header { background: #1c1c1c; border-bottom: 3px solid #b11217; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.5); flex-wrap: wrap; }
-        header h1 { margin: 0; font-size: 18px; text-transform: uppercase; color: #fff; font-weight: 800; letter-spacing: 1px; }
-        
-        /* Estilo del Usuario y Botón Salir */
-        #user-display { color: #f39c12; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 10px; }
-        
-        nav { display: flex; align-items: center; gap: 15px; }
-        nav a { color: #ccc; text-decoration: none; font-size: 14px; font-weight: 500; text-transform: uppercase; }
-        nav a:hover { color: #fff; }
-        
-        .hero { background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1534710962250-934c0f16f31f?auto=format&fit=crop&w=1350&q=80') center/cover no-repeat; padding: 80px 20px; text-align: center; display: flex; justify-content: center; align-items: center; min-height: 40vh; }
-        .hero-content { max-width: 100%; width: 400px; background: rgba(0,0,0,0.6); padding: 20px; border-radius: 10px; backdrop-filter: blur(5px); }
-        .hero input { padding: 15px; width: 100%; margin-bottom: 15px; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; background: #fff; color: #000; }
-        
-        .btn { background: #b11217; color: #fff; padding: 15px; width: 100%; border: none; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
-        .btn:active { transform: scale(0.98); background: #8f0e12; }
-        
-        .section { padding: 40px 20px; max-width: 1000px; margin: auto; }
-        .section h2 { border-bottom: 3px solid #b11217; display: inline-block; padding-bottom: 5px; margin-bottom: 20px; text-transform: uppercase; color: #fff; font-size: 20px; }
-        
-        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: #252525; border-left: 5px solid #b11217; padding: 20px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s; }
-        .card:active { transform: scale(0.98); background: #333; }
-        .card h3 { margin-top: 0; color: #fff; }
-        .card p { color: #aaa; font-size: 14px; }
+        :root {
+            --fire-red: #d32f2f;
+            --fire-dark-red: #b71c1c;
+            --safety-yellow: #ffeb3b;
+            --safety-orange: #f57c00;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #b0b0b0;
+            --success: #2e7d32;
+            --glass: rgba(30, 30, 30, 0.95);
+        }
 
-        .grid-unidades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; display: none; }
-        .btn-unidad { background: #333; border: 1px solid #555; color: white; padding: 15px 5px; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        .btn-unidad.active { background: #b11217; border-color: #b11217; color: #fff; box-shadow: 0 0 10px rgba(177, 18, 23, 0.5); }
+        /* --- BASE --- */
+        body { 
+            margin: 0; 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--dark-bg); 
+            color: var(--text-main); 
+            scroll-behavior: smooth; 
+            -webkit-tap-highlight-color: transparent; 
+            background-image: radial-gradient(circle at top right, #1a0505 0%, var(--dark-bg) 60%);
+        }
+        
+        /* --- HEADER PROFESIONAL --- */
+        header { 
+            background: var(--glass); 
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--fire-red); 
+            padding: 15px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.7); 
+            flex-wrap: wrap;
+        }
+        
+        header h1 { 
+            margin: 0; 
+            font-family: 'Montserrat', sans-serif; 
+            font-size: 18px; 
+            text-transform: uppercase; 
+            color: #fff; 
+            font-weight: 900; 
+            letter-spacing: 1px;
+            background: -webkit-linear-gradient(45deg, #fff, #ffaeae);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        #user-display { 
+            color: var(--safety-yellow); 
+            font-weight: 700; 
+            font-size: 13px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        nav { display: flex; gap: 20px; }
+        nav a { 
+            color: var(--text-muted); 
+            text-decoration: none; 
+            font-size: 13px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            transition: 0.3s;
+            position: relative;
+        }
+        nav a:hover, nav a.active { color: var(--safety-orange); }
+        nav a::after {
+            content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 2px; 
+            background: var(--safety-orange); transition: 0.3s;
+        }
+        nav a:hover::after { width: 100%; }
+        
+        /* --- HERO LOGIN --- */
+        .hero { 
+            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, var(--dark-bg) 100%), 
+                        url('https://images.unsplash.com/photo-1552084777-626a5759750b?q=80&w=1470&auto=format&fit=crop') center/cover fixed; 
+            padding: 80px 20px; 
+            text-align: center; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 50vh; 
+        }
+        
+        .hero-content { 
+            width: 100%; 
+            max-width: 400px; 
+            background: rgba(20, 20, 20, 0.85); 
+            padding: 30px; 
+            border-radius: 15px; 
+            backdrop-filter: blur(8px); 
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transform: translateY(0);
+            animation: fadeIn Up 0.8s ease;
+        }
 
-        /* PANELES Y FORMULARIOS */
-        #sistema-gestion, #sistema-electricidad { display: none; padding: 20px 10px; background: #f0f2f5; color: #333; min-height: 100vh; }
-        .container-checklist { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
+        .hero input { 
+            padding: 15px; 
+            width: 100%; 
+            margin-bottom: 15px; 
+            border-radius: 8px; 
+            border: 1px solid #444; 
+            font-size: 16px; 
+            background: #2a2a2a; 
+            color: #fff; 
+            transition: 0.3s;
+        }
+        .hero input:focus { 
+            border-color: var(--safety-orange); 
+            outline: none; 
+            background: #333;
+            box-shadow: 0 0 10px rgba(245, 124, 0, 0.3);
+        }
         
-        /* CABECERA LISTA (Desktop) */
-        .checklist-header { display: grid; grid-template-columns: 2fr 80px 140px; background: #e0e0e0; padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 10px; font-size: 12px; color: #333; text-transform: uppercase; }
+        /* --- BOTONES MODERNOS --- */
+        .btn { 
+            background: linear-gradient(135deg, var(--fire-red), var(--fire-dark-red)); 
+            color: #fff; 
+            padding: 15px; 
+            width: 100%; 
+            border: none; 
+            font-weight: 800; 
+            font-size: 15px; 
+            cursor: pointer; 
+            border-radius: 50px; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            box-shadow: 0 5px 15px rgba(211, 47, 47, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 20px rgba(211, 47, 47, 0.6); }
+        .btn:active { transform: scale(0.95); }
         
-        /* ITEMS DE LISTA */
-        .check-item-container { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #eee; border-left: 5px solid #007bff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .check-item-row { display: grid; grid-template-columns: 2fr 80px 140px; align-items: center; gap: 10px; }
+        /* --- SECCIONES Y TARJETAS --- */
+        .section { padding: 50px 20px; max-width: 1100px; margin: auto; }
+        .section h2 { 
+            border-left: 5px solid var(--fire-red); 
+            border-bottom: none;
+            padding-left: 15px; 
+            margin-bottom: 30px; 
+            text-transform: uppercase; 
+            color: #fff; 
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
         
-        .item-cant { text-align: center; font-weight: bold; color: #b11217; font-size: 16px; background: #eee; padding: 5px; border-radius: 4px; }
-        .item-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
         
-        .item-actions label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd; }
-        .item-actions input[type="radio"] { transform: scale(1.2); }
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid rgba(255,255,255,0.05);
+            /* El borde de color se manejará con box-shadow inset */
+            padding: 25px; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            transition: all 0.3s ease; 
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--fire-red); transition: 0.3s;
+        }
+        /* Colores específicos por ID */
+        #card-materiales::before { background: #007bff; }
+        #card-materiales:hover { box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2); }
+        #card-automotores::before { background: var(--fire-red); }
+        #card-automotores:hover { box-shadow: 0 10px 30px rgba(211, 47, 47, 0.2); }
+        #card-electricidad::before { background: var(--safety-orange); }
+        #card-electricidad:hover { box-shadow: 0 10px 30px rgba(245, 124, 0, 0.2); }
 
-        .obs-input { width: 100%; margin-top: 10px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; display: none; box-sizing: border-box; font-size: 14px; background: #fafafa; }
+        .card:hover { transform: translateY(-5px); background: #252525; }
+        .card h3 { margin-top: 0; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 18px; }
+        .card p { color: var(--text-muted); font-size: 14px; margin-bottom: 0; }
+
+        /* GRILLA DE UNIDADES */
+        .grid-unidades { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-top: 20px; display: none; animation: slideDown 0.4s ease; }
+        .btn-unidad { 
+            background: #2a2a2a; 
+            border: 1px solid #444; 
+            color: var(--text-muted); 
+            padding: 15px 5px; 
+            cursor: pointer; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 14px; 
+            transition: 0.2s; 
+            text-align: center;
+        }
+        .btn-unidad:hover { background: #333; color: #fff; border-color: #666; }
+        .btn-unidad.active { 
+            background: var(--fire-red); 
+            border-color: var(--fire-red); 
+            color: #fff; 
+            box-shadow: 0 0 15px rgba(211, 47, 47, 0.5); 
+            transform: scale(1.05);
+        }
+
+        /* --- FORMULARIOS Y PANELES --- */
+        #sistema-gestion, #sistema-electricidad { 
+            display: none; 
+            padding: 20px 10px; 
+            background: var(--dark-bg); 
+            min-height: 100vh; 
+        }
         
-        .btn-save { background-color: #27ae60; color: white; padding: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 25px; font-size: 16px; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.3); }
+        .container-checklist { 
+            max-width: 800px; 
+            margin: auto; 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
         
-        /* ESTILOS DE ALERTAS */
-        .alerta-box { display: none; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 15px; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .alerta-box.amarillo { background: #f9a825; border-left: 5px solid #fff; }
-        .alerta-box.naranja  { background: #ef6c00; border-left: 5px solid #fff; }
-        .alerta-box.rojo     { background: #c62828; border-left: 5px solid #fff; }
+        /* ITEMS DE LISTA - ESTILO TARJETA */
+        .check-item-container { 
+            background: #252525; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            border-radius: 12px; 
+            border: none;
+            border-left: 4px solid #444; /* Default */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+            transition: 0.3s;
+        }
+        .check-item-container:hover { background: #2a2a2a; }
+
+        .check-item-row { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 15px; 
+            flex-wrap: wrap;
+        }
+        
+        .check-item-row span:first-child {
+            font-size: 15px;
+            font-weight: 500;
+            color: #eee;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .item-cant { 
+            font-weight: 900; 
+            color: var(--safety-yellow); 
+            font-size: 14px; 
+            background: rgba(255, 235, 59, 0.1); 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            border: 1px solid rgba(255, 235, 59, 0.2);
+        }
+
+        /* RADIO BUTTONS ESTILIZADOS */
+        .item-actions { display: flex; gap: 10px; }
+        
+        .item-actions label { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 13px; 
+            cursor: pointer; 
+            background: #333; 
+            padding: 8px 15px; 
+            border-radius: 30px; 
+            border: 1px solid #444; 
+            transition: 0.2s;
+            color: #aaa;
+        }
+        
+        /* Truco visual para radios seleccionados */
+        .item-actions input[type="radio"] { accent-color: var(--safety-orange); }
+        .item-actions label:hover { background: #444; color: #fff; }
+        .item-actions label:has(input:checked) {
+            background: #fff;
+            color: #000;
+            font-weight: bold;
+            border-color: #fff;
+        }
+        /* Rojo si marca mal */
+        .item-actions label:has(input[value="mal"]:checked) {
+            background: var(--fire-red);
+            color: white;
+            border-color: var(--fire-red);
+        }
+        /* Verde si marca bien */
+        .item-actions label:has(input[value="bien"]:checked) {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .obs-input { 
+            width: 100%; margin-top: 15px; padding: 12px; 
+            background: #1a1a1a; border: 1px solid #444; border-radius: 8px; 
+            display: none; color: #fff; font-family: inherit;
+        }
+        
+        .btn-save { 
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            color: white; padding: 20px; border: none; border-radius: 12px; cursor: pointer; font-weight: 900; width: 100%; margin-top: 25px; font-size: 16px; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.3); letter-spacing: 1px;
+        }
+        
+        /* ALERTAS */
+        .alerta-box { display: none; padding: 15px; border-radius: 8px; margin-bottom: 25px; font-size: 14px; color: white; font-weight: 500; display: flex; flex-direction: column; gap: 5px; }
+        .alerta-box.amarillo { background: linear-gradient(45deg, #f9a825, #f57f17); border-left: 5px solid #fff; box-shadow: 0 5px 15px rgba(249, 168, 37, 0.3); }
+        .alerta-box.naranja  { background: linear-gradient(45deg, #ef6c00, #e65100); border-left: 5px solid #fff; }
+        .alerta-box.rojo     { background: linear-gradient(45deg, #c62828, #b71c1c); border-left: 5px solid #fff; box-shadow: 0 5px 15px rgba(198, 40, 40, 0.4); }
         .alerta-box.negro    { background: #212121; border-left: 5px solid #fff; }
-        .alerta-box span { display: block; margin-top: 5px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 2px; }
 
         /* ELECTRICIDAD */
-        .form-grid-electricidad { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .form-grid-electricidad { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .form-group-full { grid-column: 1 / -1; }
-        .form-label-elec { display: block; font-weight: 600; color: #444; margin-bottom: 5px; font-size: 13px; }
-        .form-input-elec { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; background: #fff; }
+        .form-label-elec { display: block; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; font-size: 12px; text-transform: uppercase; }
+        .form-input-elec { width: 100%; padding: 14px; border: 1px solid #444; border-radius: 8px; font-size: 15px; box-sizing: border-box; background: #2a2a2a; color: #fff; }
+        .form-input-elec:focus { border-color: var(--safety-orange); outline: none; background: #333; }
 
         /* TABLA HISTORIAL */
-        .history-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; background: white; color: #333; }
-        .history-table th, .history-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        .history-table th { background: #eee; color: #333; text-transform: uppercase; font-size: 11px; }
+        .history-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; font-size: 13px; background: transparent; color: #eee; }
+        .history-table th { background: #333; color: var(--safety-yellow); padding: 15px; text-align: left; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; border-bottom: 2px solid #444; }
+        .history-table td { padding: 15px; border-bottom: 1px solid #333; background: rgba(255,255,255,0.02); }
+        .history-table tr:hover td { background: rgba(255,255,255,0.05); }
 
         /* COMBUSTIBLE */
-        .fuel-options { display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap; }
-        .fuel-btn { padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; font-size: 12px; font-weight: bold; flex: 1; text-align: center; min-width: 40px; }
-        .fuel-btn.active { background: #b11217; color: #fff; border-color: #b11217; }
+        .fuel-options { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; width: 100%; margin-top: 10px; }
+        .fuel-btn { padding: 10px 15px; border: 1px solid #444; border-radius: 25px; cursor: pointer; background: #2a2a2a; font-size: 12px; font-weight: bold; flex: 1; text-align: center; color: #ccc; transition: 0.3s; }
+        .fuel-btn:hover { background: #333; }
+        .fuel-btn.active { background: var(--safety-orange); color: #000; border-color: var(--safety-orange); box-shadow: 0 0 10px rgba(245, 124, 0, 0.4); }
 
-        footer { background: #000; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #222; margin-top: auto; }
+        footer { background: #000; padding: 40px 20px; text-align: center; font-size: 12px; color: #555; border-top: 1px solid #222; margin-top: auto; }
+
+        /* ANIMACIONES */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes Up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* =========================================
-           📱 MODO CELULAR (RESPONSIVE DESIGN) 
+           📱 MODO CELULAR (RESPONSIVE) 
            ========================================= */
         @media (max-width: 768px) {
-            /* Cabecera apilada */
-            header { flex-direction: column; gap: 15px; text-align: center; padding: 15px; }
-            header h1 { font-size: 16px; margin-bottom: 0; width: 100%; }
-            
-            nav { width: 100%; justify-content: center; flex-wrap: wrap; gap: 15px; order: 3; }
+            header { padding: 15px 10px; justify-content: center; gap: 15px; }
+            header h1 { font-size: 16px; width: 100%; text-align: center; }
             
             #user-display { 
-                display: flex; 
-                justify-content: center; 
-                width: 100%; 
-                font-size: 14px; 
-                order: 2; /* Pone al usuario debajo del título y arriba del menú */
-                background: rgba(255,255,255,0.1);
-                padding: 10px;
-                border-radius: 6px;
+                width: 100%; justify-content: center; background: rgba(255,255,255,0.05); 
+                padding: 10px; border-radius: 50px; margin-bottom: 5px; 
             }
-
-            /* Secciones más compactas */
-            .section { padding: 20px 10px; }
-            .hero { padding: 40px 10px; min-height: 30vh; }
             
-            /* Grilla de Unidades: 2 columnas en vez de 4 */
-            .grid-unidades { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .btn-unidad { padding: 15px; font-size: 16px; }
+            nav { width: 100%; justify-content: center; gap: 20px; background: #222; padding: 10px; border-radius: 10px; }
+            
+            .hero { padding: 40px 15px; align-items: flex-start; padding-top: 100px; }
+            
+            .grid-unidades { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .btn-unidad { padding: 20px 10px; font-size: 16px; }
 
-            /* Formularios a 1 columna */
-            .container-checklist { padding: 15px; border-radius: 0; box-shadow: none; max-width: 100%; }
+            .container-checklist { padding: 15px; border-radius: 0; box-shadow: none; max-width: 100%; background: var(--dark-bg); }
+            .check-item-container { padding: 15px; border-radius: 10px; }
+            
+            .check-item-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .check-item-row span:first-child { width: 100%; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 0; font-size: 16px; color: #fff; }
+            
+            .item-cant { width: 100%; text-align: left; background: transparent; padding: 0; color: var(--text-muted); border: none; font-size: 13px; }
+            .item-cant::before { content: "CANTIDAD: "; color: #666; font-size: 11px; font-weight: bold; }
+
+            .item-actions { width: 100%; justify-content: space-between; }
+            .item-actions label { flex: 1; justify-content: center; padding: 12px; font-size: 14px; }
+
             .form-grid-electricidad { grid-template-columns: 1fr; }
             
-            /* Transformar Tabla de Control en Tarjetas Verticales */
-            .checklist-header { display: none; } /* Ocultamos cabecera de tabla */
-            
-            .check-item-row { 
-                display: flex; 
-                flex-direction: column; 
-                align-items: flex-start; 
-                gap: 10px; 
-            }
-            
-            .check-item-row span:first-child {
-                font-size: 16px;
-                font-weight: 600;
-                color: #333;
-                width: 100%;
-                border-bottom: 1px solid #eee;
-                padding-bottom: 5px;
-                margin-bottom: 5px;
-            }
-            
-            .item-cant { 
-                width: 100%; 
-                text-align: left; 
-                background: transparent; 
-                padding: 0; 
-                color: #666; 
-                font-size: 14px; 
-                font-weight: normal; 
-            }
-            .item-cant::before { content: "Cantidad: "; font-weight: bold; }
-
-            .item-actions { 
-                width: 100%; 
-                justify-content: space-between; 
-            }
-            .item-actions label { 
-                flex: 1; 
-                justify-content: center; 
-                padding: 10px; 
-                font-size: 16px; 
-            }
-
-            /* Combustible en celular */
-            .fuel-options { width: 100%; }
-            .fuel-btn { padding: 10px; font-size: 13px; }
-
-            /* Panel Admin Vencimientos */
-            #panel-admin-vencimientos > div { grid-template-columns: 1fr !important; }
-            
-            /* Tablas con scroll horizontal */
-            .history-table th, .history-table td { font-size: 11px; padding: 8px 5px; }
+            /* Ajuste tabla historial */
+            .history-table th, .history-table td { font-size: 12px; padding: 10px; white-space: nowrap; }
+            div[style*="overflow-x: auto"] { border-radius: 10px; border: 1px solid #333; }
         }
     </style>
 </head>
@@ -188,106 +420,128 @@
     <h1>Bomberos Voluntarios Ing. White</h1>
     <span id="user-display"></span>
     <nav>
-        <a href="#inicio">Inicio</a>
-        <a href="#sectores">Sectores</a>
-        <a href="#contactos">Contactos</a>
+        <a href="#inicio"><i class="fa-solid fa-house"></i> Inicio</a>
+        <a href="#sectores"><i class="fa-solid fa-layer-group"></i> Sectores</a>
+        <a href="#contactos"><i class="fa-solid fa-address-book"></i> Contactos</a>
     </nav>
 </header>
 
 <section class="hero" id="inicio">
     <div class="hero-content">
         <div id="login-box">
-            <h2 style="color:white; margin-top:0;">Ingrese el usuario</h2>
-            <input type="text" id="nombre-login" placeholder="Nombre" autocapitalize="words"><br>
-            <input type="text" id="apellido-login" placeholder="Apellido" autocapitalize="words"><br>
-            <button class="btn" onclick="iniciarValidacionFaceID()">INGRESAR</button>
+            <h2 style="color:white; margin-top:0; font-family:'Montserrat', sans-serif; text-transform: uppercase; font-size: 20px; letter-spacing: 1px; margin-bottom: 20px;">
+                <i class="fa-solid fa-shield-halved" style="color:var(--fire-red); margin-right:10px;"></i> Acceso Móvil
+            </h2>
+            <input type="text" id="nombre-login" placeholder="Nombre" autocapitalize="words">
+            <input type="text" id="apellido-login" placeholder="Apellido" autocapitalize="words">
+            <button class="btn" onclick="iniciarValidacionFaceID()">INGRESAR <i class="fa-solid fa-arrow-right"></i></button>
         </div>
 
-        <div class="hero-content" id="welcome-box" style="display:none;">
-            <h2 id="saludo-user" style="color:white;"></h2>
-            <button class="btn" onclick="document.getElementById('sectores').scrollIntoView()">VER SECTORES</button>
+        <div class="hero-content" id="welcome-box" style="display:none; text-align: center;">
+            <i class="fa-solid fa-helmet-safety" style="font-size: 50px; color: var(--safety-yellow); margin-bottom: 20px;"></i>
+            <h2 id="saludo-user" style="color:white; margin-bottom: 30px;"></h2>
+            <button class="btn" onclick="document.getElementById('sectores').scrollIntoView()">IR A SECTORES <i class="fa-solid fa-chevron-down"></i></button>
         </div>
     </div>
 </section>
 
 <section class="section" id="sectores">
-    <h2>Sectores de Gestión</h2>
+    <h2><i class="fa-solid fa-fire-extinguisher"></i> Sectores de Gestión</h2>
     <div class="cards">
-        <div class="card" id="card-materiales" style="border-color: #007bff;" onclick="mostrarBotonesMateriales()">
-            <h3 style="color:#007bff;">🛠️ Materiales</h3>
-            <p>Inventario y Herramientas</p>
+        <div class="card" id="card-materiales" style="border-left-color: #007bff;" onclick="mostrarBotonesMateriales()">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="color:#007bff;">MATERIALES</h3>
+                <i class="fa-solid fa-toolbox" style="color: #007bff; font-size: 24px;"></i>
+            </div>
+            <p>Inventario, Herramientas y Mochilas</p>
             <div id="grilla-materiales" class="grid-unidades"></div>
         </div>
-        <div class="card" id="card-automotores" style="border-color: #b11217;" onclick="mostrarBotonesUnidades()">
-            <h3 style="color:#b11217;">🚒 Automotores</h3>
-            <p>Inspección de Unidades</p>
+        <div class="card" id="card-automotores" style="border-left-color: var(--fire-red);" onclick="mostrarBotonesUnidades()">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="color:var(--fire-red);">AUTOMOTORES</h3>
+                <i class="fa-solid fa-truck-medical" style="color: var(--fire-red); font-size: 24px;"></i>
+            </div>
+            <p>Inspección Técnica de Unidades</p>
             <div id="grilla-unidades" class="grid-unidades"></div>
         </div>
-        <div class="card" id="card-electricidad" style="border-color: #f39c12;" onclick="entrarElectricidad()">
-            <h3 style="color:#f39c12;">⚡ Electricidad</h3>
-            <p>Mantenimiento Eléctrico</p>
+        <div class="card" id="card-electricidad" style="border-left-color: var(--safety-orange);" onclick="entrarElectricidad()">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="color:var(--safety-orange);">ELECTRICIDAD</h3>
+                <i class="fa-solid fa-bolt" style="color: var(--safety-orange); font-size: 24px;"></i>
+            </div>
+            <p>Mantenimiento Eléctrico y Tareas</p>
         </div>
     </div>
     
-    <div id="panel-admin-vencimientos" class="container-checklist" style="display:none; margin-top:20px; border: 2px solid #b11217;">
-        <h3 style="color: #b11217; margin-top:0;">📅 Cargar Vencimiento</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: end;">
+    <div id="panel-admin-vencimientos" class="container-checklist" style="display:none; margin-top:40px; border: 1px solid var(--fire-red);">
+        <h3 style="color: var(--fire-red); margin-top:0; border-bottom: 1px solid #333; padding-bottom: 10px;">
+            <i class="fa-solid fa-calendar-days"></i> Cargar Vencimiento
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
             <div>
-                <label style="font-weight:bold; font-size:12px;">Tipo</label>
+                <label class="form-label-elec">Tipo</label>
                 <select id="admin-tipo" class="form-input-elec" onchange="toggleSelectorUnidad()">
                     <option value="VTV">VTV (Por Unidad)</option>
                     <option value="GRAL">Engrase / Tarea General</option>
                 </select>
             </div>
             <div id="box-admin-unidad">
-                <label style="font-weight:bold; font-size:12px;">Unidad</label>
+                <label class="form-label-elec">Unidad</label>
                 <select id="admin-unidad" class="form-input-elec"></select>
             </div>
             <div>
-                <label style="font-weight:bold; font-size:12px;">Fecha</label>
+                <label class="form-label-elec">Fecha</label>
                 <input type="date" id="admin-fecha" class="form-input-elec">
             </div>
-            <button class="btn" style="background-color: #27ae60; margin-top:10px;" onclick="guardarNuevoVencimiento()">💾 GUARDAR</button>
+            <button class="btn" style="background: linear-gradient(135deg, var(--success), #1b5e20); margin-top:10px;" onclick="guardarNuevoVencimiento()">
+                <i class="fa-solid fa-floppy-disk"></i> GUARDAR
+            </button>
         </div>
-        <h4 style="margin-top:20px; border-bottom:1px solid #ccc; padding-bottom:5px;">Próximos Vencimientos:</h4>
-        <ul id="lista-vencimientos-cargados" style="font-size:14px; color:#333; padding-left:20px;"></ul>
+        <h4 style="margin-top:20px; border-bottom:1px solid #444; padding-bottom:5px; color: #999;">Próximos Vencimientos:</h4>
+        <ul id="lista-vencimientos-cargados" style="font-size:14px; color:#ddd; padding-left:20px; line-height: 1.6;"></ul>
     </div>
 </section>
 
 <section id="sistema-gestion">
     <div class="container-checklist">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 id="titulo-control" style="margin:0; font-size:18px;">Control</h2>
-            <button onclick="location.reload()" style="background:#ddd; border:none; padding:8px 12px; border-radius:4px; font-weight:bold;">🔙 Volver</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+            <h2 id="titulo-control" style="margin:0; font-size:20px; border:none; color: var(--text-main);">Control</h2>
+            <button onclick="location.reload()" style="background:#333; border:1px solid #555; color:#fff; padding:8px 15px; border-radius:30px; font-weight:bold; cursor: pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </button>
         </div>
         
         <div id="contenedor-alertas" class="alerta-box"></div>
         
-        <div id="contenedor-km" class="check-item-container" style="border-left-color: #f39c12; display: flex; flex-direction:column; gap:5px;">
-            <span style="font-weight: bold;">Kilometraje Actual</span>
-            <input type="number" id="km-u1" placeholder="Ej: 45000" style="padding: 12px; width: 100%; border-radius: 4px; border: 1px solid #ccc; font-size:16px;">
+        <div id="contenedor-km" class="check-item-container" style="border-left-color: var(--safety-orange); display: flex; flex-direction:column; gap:10px;">
+            <span style="font-weight: bold; color: var(--safety-orange); font-size: 16px;"><i class="fa-solid fa-gauge-high"></i> KILOMETRAJE ACTUAL</span>
+            <input type="number" id="km-u1" placeholder="Ej: 45000" style="padding: 15px; width: 100%; border-radius: 8px; border: 1px solid #444; font-size:18px; background: #1a1a1a; color: #fff; font-weight: bold;">
         </div>
         
-        <div class="checklist-header">
-            <span>Material / Control</span>
+        <div class="checklist-header" style="display: none;"> <span>Material / Control</span>
             <span style="text-align:center">Cant.</span>
             <span style="text-align:right">Estado</span>
         </div>
 
         <div id="campos-control"></div>
-        <button class="btn-save" id="btn-nube" onclick="finalizarYEnviar()">☁️ GUARDAR CONTROL</button>
-        <div style="height:50px;"></div> </div>
+        <button class="btn-save" id="btn-nube" onclick="finalizarYEnviar()">
+            <i class="fa-solid fa-cloud-arrow-up"></i> GUARDAR CONTROL
+        </button>
+        <div style="height:80px;"></div>
+    </div>
 </section>
 
 <section id="sistema-electricidad">
     <div class="container-checklist">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="color:#b30000; margin:0; font-size:18px;">⚡ Electricidad</h2>
-            <button onclick="location.reload()" style="background:#ddd; border:none; padding:8px 12px; border-radius:4px; font-weight:bold;">🔙 Volver</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="color:var(--safety-orange); margin:0; font-size:20px; border:none;">⚡ Electricidad</h2>
+            <button onclick="location.reload()" style="background:#333; border:1px solid #555; color:#fff; padding:8px 15px; border-radius:30px; font-weight:bold; cursor: pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </button>
         </div>
 
-        <div id="admin-electricidad" style="display:none; background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:20px;">
-            <h3 style="margin-top: 0; color: #555; border-bottom: 2px solid #f39c12; padding-bottom: 8px; margin-bottom: 15px;">➕ Nueva Tarea</h3>
+        <div id="admin-electricidad" style="display:none; background:#252525; padding:20px; border-radius:15px; margin-bottom:30px; border: 1px solid #444;">
+            <h3 style="margin-top: 0; color: #ddd; border-bottom: 2px solid var(--safety-orange); padding-bottom: 10px; margin-bottom: 20px;">➕ Nueva Tarea</h3>
             <div class="form-grid-electricidad">
                 <div><label class="form-label-elec">Tipo</label><select id="elec-tipo" class="form-input-elec"><option>Reparación</option><option>Instalación</option><option>Mantenimiento</option></select></div>
                 <div><label class="form-label-elec">Lugar</label><input type="text" id="elec-lugar" class="form-input-elec"></div>
@@ -298,25 +552,36 @@
                 <div class="form-group-full"><label class="form-label-elec">Herramientas</label><input type="text" id="elec-herramientas" class="form-input-elec"></div>
                 <div class="form-group-full"><label class="form-label-elec">Descripción</label><textarea id="elec-desc" class="form-input-elec" rows="2"></textarea></div>
             </div>
-            <button class="btn" style="width: 100%;" onclick="crearTareaElectrica()">⚡ CREAR TAREA</button>
+            <button class="btn" style="width: 100%; background: linear-gradient(135deg, var(--safety-orange), #e65100);" onclick="crearTareaElectrica()">⚡ CREAR TAREA</button>
         </div>
         <div id="listaTareasElectricas"></div>
     </div>
 </section>
 
 <section class="section" id="contactos">
-    <h2>Responsables</h2>
+    <h2><i class="fa-solid fa-users"></i> Responsables</h2>
     <div class="cards">
-        <div class="card"><h3>Subof Ayte. 1° Kevin Ftuli</h3><p>Automotores</p></div>
-        <div class="card"><h3>Subof Mayor. Mauro Martinez</h3><p>Materiales</p></div>
-        <div class="card"><h3>Subof Ayte. 1° Miguel Alfaro</h3><p>Electricidad</p></div>
+        <div class="card" style="border-left-color: var(--fire-red);">
+            <h3><i class="fa-solid fa-truck-monster"></i> Automotores</h3>
+            <p style="color: #fff; font-weight: bold; margin-top: 5px;">Subof. Kevin Ftuli</p>
+        </div>
+        <div class="card" style="border-left-color: #007bff;">
+            <h3><i class="fa-solid fa-screwdriver-wrench"></i> Materiales</h3>
+            <p style="color: #fff; font-weight: bold; margin-top: 5px;">Subof. Mauro Martinez</p>
+        </div>
+        <div class="card" style="border-left-color: var(--safety-orange);">
+            <h3><i class="fa-solid fa-plug"></i> Electricidad</h3>
+            <p style="color: #fff; font-weight: bold; margin-top: 5px;">Subof. Miguel Alfaro</p>
+        </div>
     </div>
 
-    <div id="panel-consulta-encargado" style="display:none; margin-top: 30px; background: white; color: #333; padding: 15px; border-radius: 8px;">
-        <h3 id="titulo-consulta" style="color: #b11217; margin-top: 0;">Historial</h3>
+    <div id="panel-consulta-encargado" style="display:none; margin-top: 40px; background: var(--card-bg); color: #ddd; padding: 20px; border-radius: 15px; border: 1px solid #444;">
+        <h3 id="titulo-consulta" style="color: var(--fire-red); margin-top: 0; text-transform: uppercase;">
+            <i class="fa-solid fa-clock-rotate-left"></i> Historial
+        </h3>
         <div id="selector-unidades-encargado" style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;"></div>
         
-        <div style="overflow-x: auto; border:1px solid #eee;">
+        <div style="overflow-x: auto;">
             <table class="history-table">
                 <thead>
                     <tr>
@@ -335,10 +600,10 @@
     </div>
 </section>
 
-<footer>© 2026 Cuartel de Bomberos Ing. White</footer>
+<footer>
+    <p>© 2026 Cuartel de Bomberos Ing. White</p>
+    <p style="opacity: 0.5; font-size: 10px;">Sistema de Gestión Operativa v2.0</p>
+</footer>
 <script src="script.js"></script>
 </body>
 </html>
-
-
-

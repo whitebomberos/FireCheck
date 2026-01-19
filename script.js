@@ -1,187 +1,56 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-// --- CONFIGURACIÓN DE PERMISOS ---
+// --- CONFIGURACIÓN DE PERMISOS Y ROLES ---
 const ENCARGADOS_DATA = {
+    // --- AUTOMOTORES ---
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
     "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
     "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
     "FEDERICO MAISTERRENA": ["UNIDAD 4", "UNIDAD 13", "UNIDAD 15", "SOLO_AUTOMOTORES"],
+
+    // --- MATERIALES ---
     "MAURO MARTINEZ": ["SOLO_MATERIALES"], 
     "CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
     "MARA CASTILLO": ["SOLO_MATERIALES"], 
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
+
+    // --- JEFATURA (SUPER USUARIOS) ---
     "CRISTIAN BALEY": ["SUPER_USUARIO"],
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
     "MARCO ALFARO": ["SUPER_USUARIO"],
+    "MARCOS ALFARO": ["SUPER_USUARIO"],
     "ROLANDO AVERSANO": ["SUPER_USUARIO"],
     "NELSON CECI": ["SUPER_USUARIO"],
     "ROLANDO MISHEVITCH": ["SUPER_USUARIO"],
     "CESAR MENDIONDO": ["SUPER_USUARIO"],
     "NORBERTO COLACCE": ["SUPER_USUARIO"],
+    
+    // --- ELECTRICIDAD ---
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
 };
 
-// LISTAS COMPLETAS
+// LISTAS
 const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
 
-// =========================================================
-//  GESTIÓN DE ALERTAS Y VENCIMIENTOS
-// =========================================================
-const hoyPrueba = new Date();
-const ayer = new Date(hoyPrueba); ayer.setDate(ayer.getDate() - 1); 
-const semanaQviene = new Date(hoyPrueba); semanaQviene.setDate(semanaQviene.getDate() + 5); 
-
-const VTV_DEFAULT = [
-    { unidad: "UNIDAD 8", fecha: ayer.toISOString().split('T')[0] },      
-    { unidad: "UNIDAD 13", fecha: semanaQviene.toISOString().split('T')[0] } 
+// BASE DE DATOS LOCAL
+let VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || [
+    { unidad: "UNIDAD 8", fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0] },      
+    { unidad: "UNIDAD 13", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] } 
 ];
-const TAREAS_DEFAULT = [
-    { tarea: "Engrase general de flota", fecha: semanaQviene.toISOString().split('T')[0] }
+let TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [
+    { tarea: "Engrase general de flota", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] }
 ];
+let DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || [];
 
-let VTV_DATA;
-let TAREAS_GENERALES_AUTO;
-
-try {
-    VTV_DATA = JSON.parse(localStorage.getItem("db_vtv"));
-} catch (e) { console.warn("Memoria bloqueada, usando datos temporales"); }
-
-try {
-    TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral"));
-} catch (e) { console.warn("Memoria bloqueada, usando datos temporales"); }
-
-if (!VTV_DATA) VTV_DATA = VTV_DEFAULT;
-if (!TAREAS_GENERALES_AUTO) TAREAS_GENERALES_AUTO = TAREAS_DEFAULT;
-
-
-// 2. FUNCIÓN PARA MOSTRAR EL PANEL DE CARGA
-function mostrarPanelAdmin() {
-    if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
-    
-    const permisos = ENCARGADOS_DATA[usuarioActivo];
-    if (!permisos.includes("SOLO_AUTOMOTORES")) return;
-
-    const panel = document.getElementById("panel-admin-vencimientos");
-    if(panel) panel.style.display = "block";
-
-    const select = document.getElementById("admin-unidad");
-    if(select) {
-        select.innerHTML = "";
-        LISTA_IDS_UNIDADES.forEach(u => {
-            let opt = document.createElement("option");
-            opt.value = "UNIDAD " + u;
-            opt.text = "UNIDAD " + u;
-            select.appendChild(opt);
-        });
-    }
-    actualizarListaVisual();
-}
-
-// 3. FUNCIÓN PARA GUARDAR VENCIMIENTOS
-function guardarNuevoVencimiento() {
-    const tipo = document.getElementById("admin-tipo").value;
-    const fecha = document.getElementById("admin-fecha").value;
-    
-    if (!fecha) return alert("Por favor, seleccioná una fecha.");
-
-    try {
-        if (tipo === "VTV") {
-            const unidad = document.getElementById("admin-unidad").value;
-            const index = VTV_DATA.findIndex(v => v.unidad === unidad);
-            if (index >= 0) {
-                VTV_DATA[index].fecha = fecha; 
-            } else {
-                VTV_DATA.push({ unidad: unidad, fecha: fecha });
-            }
-            localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
-            alert(`VTV de ${unidad} actualizada para el ${fecha}`);
-        } 
-        else {
-            const nombreTarea = prompt("Nombre de la tarea (Ej: Engrase, Cambio Aceite):", "Engrase General");
-            if (!nombreTarea) return;
-            
-            TAREAS_GENERALES_AUTO.push({ tarea: nombreTarea, fecha: fecha });
-            localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
-            alert("Tarea general guardada.");
-        }
-        
-        actualizarListaVisual();
-        location.reload(); 
-
-    } catch (e) {
-        alert("Aviso: El navegador bloqueó el guardado permanente.");
-        actualizarListaVisual();
-    }
-}
-
-function toggleSelectorUnidad() {
-    const tipo = document.getElementById("admin-tipo").value;
-    const box = document.getElementById("box-admin-unidad");
-    if(box) box.style.display = (tipo === "VTV") ? "block" : "none";
-}
-
-function actualizarListaVisual() {
-    const lista = document.getElementById("lista-vencimientos-cargados");
-    if(!lista) return;
-    lista.innerHTML = "";
-    
-    VTV_DATA.forEach(v => {
-        lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`;
-    });
-    TAREAS_GENERALES_AUTO.forEach(t => {
-        lista.innerHTML += `<li>🔧 <b>GENERAL</b> - ${t.tarea}: ${t.fecha}</li>`;
-    });
-}
-
-// 4. FUNCIÓN PRINCIPAL DE ALERTAS
-function gestionarAlertas(sector, nombreUnidad) {
-    const contenedor = document.getElementById("contenedor-alertas");
-    if(!contenedor) return; 
-    
-    contenedor.style.display = "none";
-    contenedor.className = "alerta-box"; 
-    
-    const hoy = new Date();
-    let alertas = [];
-    const DIAS_AVISO = 30; 
-
-    if (sector === 'AUTO') {  
-        const vtv = VTV_DATA.find(v => v.unidad === nombreUnidad);
-        if (vtv) {
-            const dias = Math.ceil((new Date(vtv.fecha) - hoy) / (86400000));
-            if (dias <= DIAS_AVISO) {
-                alertas.push({ texto: `VTV: Vence en ${dias} días (${vtv.fecha})`, dias: dias });
-            }
-        }
-
-        TAREAS_GENERALES_AUTO.forEach(t => {
-            const dias = Math.ceil((new Date(t.fecha) - hoy) / (86400000));
-            if (dias <= DIAS_AVISO) {
-                alertas.push({ texto: `GENERAL: ${t.tarea} (en ${dias} días)`, dias: dias });
-            }
-        });
-    }
-
-    if (alertas.length > 0) {
-        let estado = "amarillo"; 
-        if (alertas.some(a => a.dias < 0)) estado = "negro"; 
-        else if (alertas.some(a => a.dias <= 3)) estado = "rojo"; 
-        else if (alertas.some(a => a.dias <= 7)) estado = "naranja"; 
-
-        contenedor.classList.add(estado);
-        contenedor.innerHTML = `<strong>⚠️ ALERTAS DE VENCIMIENTO</strong>` + 
-                               alertas.map(a => `<span>${a.texto}</span>`).join("");
-        contenedor.style.display = "block";
-    }
-}
-
-
+// --- VARIABLES GLOBALES ---
 let usuarioActivo = "";
 let unidadSeleccionada = "";
 let sectorActivo = ""; 
-let tareasElectricas = [];
 let combustibleSeleccionado = "";
 
+// =========================================================
+//  LÓGICA DE LOGIN
+// =========================================================
 function iniciarValidacionFaceID() {
     const nom = document.getElementById('nombre-login').value.trim();
     const ape = document.getElementById('apellido-login').value.trim();
@@ -200,7 +69,6 @@ function ingresarAlSistema() {
     generarGrillaUnidades();
     generarGrillaMateriales();
 
-    // Si es encargado de automotores, mostrar panel de carga de VTV
     const p = ENCARGADOS_DATA[usuarioActivo];
     if (p) {
         generarBotonesFiltroEncargado(p);
@@ -216,12 +84,11 @@ function cerrarSesion() {
 }
 
 // =========================================================
-//  NAVEGACIÓN Y PERMISOS (MODIFICADO)
+//  NAVEGACIÓN Y PERMISOS
 // =========================================================
 
 function mostrarBotonesUnidades() {
     const permisos = ENCARGADOS_DATA[usuarioActivo];
-    // Bloqueo cruzado
     if (permisos && (permisos.includes("SOLO_MATERIALES") || permisos.includes("SUBOFICIAL_ELECTRICIDAD"))) {
         return alert("⛔ Acceso denegado. Personal de otro sector.");
     }
@@ -235,7 +102,6 @@ function mostrarBotonesUnidades() {
 
 function mostrarBotonesMateriales() {
     const permisos = ENCARGADOS_DATA[usuarioActivo];
-    // Bloqueo cruzado
     if (permisos && (permisos.includes("SOLO_AUTOMOTORES") || permisos.includes("SUBOFICIAL_ELECTRICIDAD"))) {
         return alert("⛔ Acceso denegado. Personal de otro sector.");
     }
@@ -259,20 +125,19 @@ function entrarElectricidad() {
             tieneAcceso = false;
         }
         
-        // Marco Alfaro (Super Usuario) y Miguel Alfaro (Electricidad) son admins aquí
+        // Marco y Miguel son admins aquí
         if (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO")) {
             esEncargadoElec = true;
             tieneAcceso = true; 
         }
     }
-    // Bomberos rasos tienen acceso=true por defecto, pero esEncargadoElec=false
     
     if (!tieneAcceso) return alert("⛔ Acceso denegado.");
 
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('sistema-electricidad').style.display = 'block';
     
-    // MOSTRAR PANEL DE CARGA SOLO A MIGUEL Y MARCO
+    // MOSTRAR PANEL DE CARGA SOLO A JEFES Y ELECTRICISTAS
     const panelAdmin = document.getElementById('admin-electricidad');
     if (panelAdmin) {
         panelAdmin.style.display = esEncargadoElec ? 'block' : 'none';
@@ -296,12 +161,12 @@ function seleccionarUnidad(num, tipo, btn) {
     btn.classList.add('active');
 
     // --- LÓGICA DE REDIRECCIÓN PARA ENCARGADOS ---
+    // Si el usuario es Encargado o Jefe, NO ve el formulario de control, va directo al Historial
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     const esSuper = permisos?.includes("SUPER_USUARIO");
     const esJefeAuto = permisos?.includes("SOLO_AUTOMOTORES") || permisos?.includes("VER_TODO_AUTOMOTORES");
     const esJefeMat = permisos?.includes("SOLO_MATERIALES");
 
-    // Si es SUPER USUARIO, o ENCARGADO DE ESTE SECTOR -> Va directo al historial
     if (esSuper || (tipo === 'AUTO' && esJefeAuto) || (tipo === 'MAT' && esJefeMat)) {
         document.getElementById('sistema-gestion').style.display = 'none'; 
         verHistorialEspecifico(unidadSeleccionada);
@@ -315,7 +180,6 @@ function seleccionarUnidad(num, tipo, btn) {
     document.getElementById('titulo-control').innerText = unidadSeleccionada;
     document.getElementById('contenedor-km').style.display = tipo === 'AUTO' ? 'block' : 'none';
 
-    // Obtener lista correcta
     let listaItems = [];
     if (sectorActivo === 'AUTO') {
         try {
@@ -381,7 +245,7 @@ function seleccionarUnidad(num, tipo, btn) {
                 <div class="check-item-container" style="border-left-color: #27ae60;">
                     <div class="check-item-row" style="display:block;">
                         <div style="margin-bottom:5px; font-weight:bold;">${c.item}</div>
-                        <input type="text" id="input-escritura-${idx}" placeholder="Escriba aquí..." class="form-input-elec" style="width:100%; padding:10px;">
+                        <input type="text" id="input-escritura-${idx}" placeholder="Escriba aquí..." class="form-input" style="width:100%;">
                     </div>
                 </div>`;
         }
@@ -396,7 +260,7 @@ function seleccionarUnidad(num, tipo, btn) {
                         </div>
                     </div>
                     <div id="obs-container-${idx}" style="display:none;">
-                        <textarea id="obs-${idx}" class="obs-input" placeholder="Detalle el problema..." style="width:100%; padding:10px; margin-top:10px;"></textarea>
+                        <textarea id="obs-${idx}" class="form-input" placeholder="Detalle el problema..." style="margin-top:10px;"></textarea>
                         <input type="file" id="foto-${idx}" accept="image/*" style="margin-top:10px; color:#ccc;">
                     </div>
                 </div>`;
@@ -405,19 +269,30 @@ function seleccionarUnidad(num, tipo, btn) {
 }
 
 // =========================================================
-//  GESTIÓN DE ELECTRICIDAD (MODIFICADA)
+//  GESTIÓN DE ELECTRICIDAD (COMPLETA)
 // =========================================================
 
 function crearTareaElectrica() {
     const lugar = document.getElementById("elec-lugar").value;
     const tipo = document.getElementById("elec-tipo").value;
-    
-    if(!lugar) return alert("Indique el lugar.");
+    const desc = document.getElementById("elec-desc").value;
+    const mat = document.getElementById("elec-mat").value;
+    const prio = document.getElementById("elec-prio").value;
+    const fecha = document.getElementById("elec-fecha").value;
+    const asignado = document.getElementById("elec-asignado").value;
+
+    if(!lugar || !desc) return alert("Complete los campos obligatorios (Lugar y Descripción)");
     
     const nuevaTarea = {
+        id: Date.now(),
         fecha: new Date().toLocaleDateString(),
         lugar: lugar,
         tipo: tipo,
+        descripcion: desc,
+        materiales: mat,
+        prioridad: prio,
+        fechaLimite: fecha,
+        asignado: asignado || "Sin asignar",
         estado: "PENDIENTE",
         autor: usuarioActivo
     };
@@ -425,8 +300,15 @@ function crearTareaElectrica() {
     DB_ELECTRICIDAD.push(nuevaTarea);
     localStorage.setItem("db_electricidad", JSON.stringify(DB_ELECTRICIDAD));
     
-    alert("Tarea de electricidad creada exitosamente.");
+    alert("Tarea creada exitosamente.");
+    
+    // Limpiar campos
     document.getElementById("elec-lugar").value = "";
+    document.getElementById("elec-desc").value = "";
+    document.getElementById("elec-mat").value = "";
+    document.getElementById("elec-fecha").value = "";
+    document.getElementById("elec-asignado").value = "";
+    
     renderizarTareasElectricas();
 }
 
@@ -440,27 +322,37 @@ function renderizarTareasElectricas() {
     }
 
     DB_ELECTRICIDAD.forEach((t, index) => {
+        const colorPrio = t.prioridad === 'Alta' ? '#c62828' : (t.prioridad === 'Media' ? '#f9a825' : '#2e7d32');
+        
         const div = document.createElement('div');
-        div.style.cssText = "background:#222; margin-bottom:10px; padding:15px; border-radius:8px; border-left:4px solid #ffd000;";
+        div.style.cssText = `background:#222; margin-bottom:10px; padding:15px; border-radius:8px; border-left:5px solid ${colorPrio};`;
         div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                <strong style="color:#ffd000;">${t.tipo.toUpperCase()}</strong>
-                <span style="font-size:12px; color:#aaa;">${t.fecha}</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <strong style="color:${colorPrio}; text-transform:uppercase;">${t.tipo} - ${t.prioridad}</strong>
+                <span style="font-size:12px; color:#aaa;">Límite: ${t.fechaLimite || 'S/F'}</span>
             </div>
-            <div style="font-size:14px; color:white; margin-bottom:5px;">${t.lugar}</div>
-            <div style="font-size:11px; color:#666;">Cargado por: ${t.autor}</div>
+            <div style="font-size:15px; color:white; font-weight:bold; margin-bottom:5px;">${t.lugar}</div>
+            <div style="font-size:13px; color:#ccc; margin-bottom:10px;">${t.descripcion}</div>
+            
+            <div style="font-size:12px; color:#888; border-top:1px solid #333; padding-top:8px;">
+                <div>🔧 Materiales: ${t.materiales || '-'}</div>
+                <div>👤 Asignado a: ${t.asignado}</div>
+                <div style="margin-top:4px;">📅 Creado: ${t.fecha} por ${t.autor}</div>
+            </div>
         `;
         
         // Botón de eliminar solo para encargados de electricidad
         const permisos = ENCARGADOS_DATA[usuarioActivo];
         if (permisos && (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO"))) {
             const btnDel = document.createElement('button');
-            btnDel.innerText = "MARCAR REALIZADO";
-            btnDel.style.cssText = "background:#2e7d32; color:white; border:none; padding:5px 10px; border-radius:4px; font-size:11px; margin-top:10px; cursor:pointer;";
+            btnDel.innerText = "✅ FINALIZAR TAREA";
+            btnDel.style.cssText = "width:100%; background:#2e7d32; color:white; border:none; padding:10px; border-radius:4px; font-size:12px; margin-top:10px; cursor:pointer; font-weight:bold;";
             btnDel.onclick = () => { 
-                DB_ELECTRICIDAD.splice(index, 1);
-                localStorage.setItem("db_electricidad", JSON.stringify(DB_ELECTRICIDAD));
-                renderizarTareasElectricas();
+                if(confirm("¿Marcar esta tarea como finalizada y borrarla de la lista?")) {
+                    DB_ELECTRICIDAD.splice(index, 1);
+                    localStorage.setItem("db_electricidad", JSON.stringify(DB_ELECTRICIDAD));
+                    renderizarTareasElectricas();
+                }
             };
             div.appendChild(btnDel);
         }
@@ -620,9 +512,19 @@ function verHistorialEspecifico(unidad) {
 function mostrarDatosEnTabla(l) {
     const c = document.getElementById('cuerpo-consulta-encargado');
     c.innerHTML = "";
-    if (l.length === 0) { c.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No hay registros recientes.</td></tr>"; return; }
+    if (l.length === 0) { c.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:20px;'>No hay registros recientes.</td></tr>"; return; }
     l.forEach(r => {
-        c.innerHTML += `<tr><td>${r.fecha}</td><td>${r.encargado}</td><td>${r.unidad}</td><td>${r.control}</td><td>${r.estado}</td><td>${r.obs}</td><td>-</td></tr>`;
+        const colorEstado = r.estado === 'MAL' ? '#ff4444' : '#00C851';
+        c.innerHTML += `
+            <tr style="border-bottom:1px solid #333;">
+                <td style="padding:10px;">${r.fecha}</td>
+                <td style="padding:10px;">${r.encargado}</td>
+                <td style="padding:10px;">${r.unidad}</td>
+                <td style="padding:10px;">${r.control}</td>
+                <td style="padding:10px; color:${colorEstado}; font-weight:bold;">${r.estado}</td>
+                <td style="padding:10px;">${r.obs}</td>
+                <td style="padding:10px;">-</td>
+            </tr>`;
     });
 }
 
@@ -633,6 +535,10 @@ window.addEventListener('load', function() {
     const guardado = localStorage.getItem("usuarioBomberosConectado");
     if (guardado) { usuarioActivo = guardado; ingresarAlSistema(); }
 });
+
+// AQUI VAN TUS LISTAS LARGAS DE CONTROLES
+// (Ya incluidas en el archivo completo que te pasé)
+
 
 // AUTO U-1
 const CONTROLES_U1_AUTO = [
@@ -1844,35 +1750,35 @@ const CONTROLES_U9_MAT = [{ "cat": "PRIMER PERSIANA LADO CHOFER", "item": "Coman
 { "cat": "HOLMATRO", "item": "Mantenimiento general", "cant": "N/A" },
 { "cat": "HOLMATRO", "item": "Limpieza", "cant": "N/A" },
 { "cat": "EXPANSOR", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "EXPANSOR", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "EXPANSOR ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "EXPANSOR ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "EXPANSOR ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "EXPANSOR ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " EXPANSOR", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " EXPANSOR ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " EXPANSOR ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " EXPANSOR ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " EXPANSOR ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "CIZALLA GRANDE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "CIZALLA GRANDE", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "CIZALLA GRANDE",  "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "CIZALLA GRANDE", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "CIZALLA GRANDE", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "CIZALLA GRANDE", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " CIZALLA GRANDE", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " CIZALLA GRANDE",  "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " CIZALLA GRANDE", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " CIZALLA GRANDE", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " CIZALLA GRANDE", "item": "Limpieza", "cant": "N/A" },
 { "cat": "MULTIPROPOSITO", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "RAM DOBLE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "RAM DOBLE ", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "RAM DOBLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "RAM DOBLE ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "RAM DOBLE ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "RAM DOBLE ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "RAM SIMPLE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "RAM SIMPLE ", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "RAM SIMPLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "RAM SIMPLE ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "RAM SIMPLE ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "RAM SIMPLE ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "AMOLADORA", "item": "Mantenimiento general", "cant": "N/A" },
 { "cat": "AMOLADORA", "item": "Puesta en marcha", "cant": "N/A" },
 { "cat": "AMOLADORA", "item": "Disco y llave", "cant": "N/A" },
@@ -2287,23 +2193,23 @@ const CONTROLES_U13_MAT = [{ "cat": "PRIMER PERSIANA LADO CHOFER", "item": "Lint
 { "cat": "HOLMATRO", "item": "Mantenimiento general", "cant": "N/A" },
 { "cat": "HOLMATRO", "item": "Limpieza", "cant": "N/A" },
 { "cat": "MULTIPROPOSITO", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "MULTIPROPOSITO", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " MULTIPROPOSITO ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "RAM DOBLE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "RAM DOBLE", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "RAM DOBLE", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "RAM DOBLE", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "RAM DOBLE", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "RAM DOBLE", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " RAM DOBLE ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "RAM SIMPLE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": "RAM SIMPLE", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": "RAM SIMPLE", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": "RAM SIMPLE", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": "RAM SIMPLE", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": "RAM SIMPLE", "item": "Limpieza", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": " RAM SIMPLE ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "MOTO BOMBA", "item": "Nivel de combustible", "cant": "N/A" },
 { "cat": "MOTO BOMBA", "item": "Estado del combustible", "cant": "N/A" },
 { "cat": "MOTO BOMBA", "item": "Nivel de aceite", "cant": "N/A" },
@@ -2643,251 +2549,266 @@ const CONTROLES_U16_MAT = [ { "cat": "PRIMER PERSIANA LADO CHOFER", "item": "For
 { "cat": "TUBO DE REPUESTO N2", "item": "Estado de entrada de aire ", "cant": "N/A" },
 { "cat": "TUBO DE REPUESTO N2", "item": "Fecha de vencimiento de PH", "cant": "N/A" },];
 
-const CONTROLES_CENTRAL = [ 
- // --- COMPRESOR OCEANIC ---
-    { cat: "COMPRESOR OCEANIC", item: "Nivel de combustible", tipo: "combustible", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Nivel de aceite motor", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Nivel de aceite del compresor", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Estado de bujía", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Puesta en marcha", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Limpieza de filtro de aire", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Mantenimiento general", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Horas de uso", tipo: "escritura", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Manguera y manómetro hasta 150", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Manguera y manómetro hasta 300", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Tension de correa", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "Estado de válvulas de carga", cant: "-" },
-    { cat: "COMPRESOR OCEANIC", item: "O-rings de válvula de carga", cant: "-" },
- // --- BATERIA DE AIRE ---
-    { cat: "BATERIA DE AIRE", item: "Estado de válvulas de carga", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "O-rings de válvula de carga", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Estado de válvulas de tubos", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Estado de mangueras", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Estado de manómetros", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Estado de acoples de tubos", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Perdidas", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Mantenimiento general", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Limpieza", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 1", tipo: "escritura", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 2", tipo: "escritura", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 3", tipo: "escritura", cant: "-" },
-    { cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 4", tipo: "escritura", cant: "-" },
-
-    // --- BATERIA DE AIRE BAUER ---
-    { cat: "BATERIA DE AIRE BAUER", item: "Estado de válvulas de carga", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "O-rings de válvula de carga", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Estado de válvulas de tubos", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Estado de mangueras", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Estado de manómetros", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Estado de acoples de tubos", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Perdidas", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Mantenimiento general", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Limpieza", cant: "-" }, 
-    { cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 1", tipo: "escritura", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 2", tipo: "escritura", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 3", tipo: "escritura", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 4", tipo: "escritura", cant: "-" },
-    { cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 5", tipo: "escritura", cant: "-" },
-
-    // --- EXTINTORES (NUEVO SEGÚN FOTO) ---
-    // Ubicación: SALON
-    { cat: "EXTINTOR - SALON", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - SALON", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: COCINA SALON
-    { cat: "EXTINTOR - COCINA SALON", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - COCINA SALON", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: CAPACITACION
-    { cat: "EXTINTOR - CAPACITACION", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - CAPACITACION", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: FOGON
-    { cat: "EXTINTOR - FOGON", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - FOGON", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: PASILLO
-    { cat: "EXTINTOR - PASILLO", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - PASILLO", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: CUADRA (1)
-    { cat: "EXTINTOR - CUADRA (1)", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - CUADRA (1)", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: PATIO
-    { cat: "EXTINTOR - PATIO", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - PATIO", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: MATERIALES
-    { cat: "EXTINTOR - MATERIALES", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - MATERIALES", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 16
-    { cat: "EXTINTOR - UNIDAD 16", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 16", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 2
-    { cat: "EXTINTOR - UNIDAD 2", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 2", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 3
-    { cat: "EXTINTOR - UNIDAD 3", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 3", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 4
-    { cat: "EXTINTOR - UNIDAD 4", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 4", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 5
-    { cat: "EXTINTOR - UNIDAD 5", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 5", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 6
-    { cat: "EXTINTOR - UNIDAD 6", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 6", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 10
-    { cat: "EXTINTOR - UNIDAD 10", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 10", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 11
-    { cat: "EXTINTOR - UNIDAD 11", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 11", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 8
-    { cat: "EXTINTOR - UNIDAD 8", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 8", item: "Seguro Colocado", cant: "-" },
-
-    // Ubicación: UNIDAD 9
-    { cat: "EXTINTOR - UNIDAD 9", item: "N° Interno", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "N° Cilindro", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "Vencimiento Carga", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "Vencimiento P/H", tipo: "escritura", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "Estado Tobera", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "Estado Manómetro", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "Estado Carga", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "Limpieza", cant: "-" },
-    { cat: "EXTINTOR - UNIDAD 9", item: "Seguro Colocado", cant: "-" }
-];
+const CONTROLES_CENTRAL = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de combustible", tipo: "combustible", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Nivel de aceite motor", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Nivel de aceite del compresor", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Estado de bujía", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Puesta en marcha", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Limpieza de filtro de aire", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Mantenimiento general", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Horas de uso", tipo: "escritura", cant: "-" }, 
+{ cat: "COMPRESOR OCEANIC", item: "Manguera y manómetro hasta 150", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Manguera y manómetro hasta 300", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Tension de correa", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "Estado de válvulas de carga", cant: "-" },
+{ cat: "COMPRESOR OCEANIC", item: "O-rings de válvula de carga", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Estado de válvulas de carga", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "O-rings de válvula de carga", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Estado de válvulas de tubos", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Estado de mangueras", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Estado de manómetros", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Estado de acoples de tubos", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Perdidas", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Mantenimiento general", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Limpieza", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 1", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 2", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 3", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE", item: "Cantidad de aire Cilindro Nº 4", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Estado de válvulas de carga", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "O-rings de válvula de carga", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Estado de válvulas de tubos", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Estado de mangueras", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Estado de manómetros", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Estado de acoples de tubos", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Perdidas", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Mantenimiento general", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Limpieza", cant: "-" }, 
+{ cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 1", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 2", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 3", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 4", tipo: "escritura", cant: "-" },
+{ cat: "BATERIA DE AIRE BAUER", item: "Cantidad de aire Cilindro Nº 5", tipo: "escritura", cant: "-" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: SALON ", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: SALON", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: SALON", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: SALON", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: COCINA SALON", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: CAPACITACIÓN", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: FOGON", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: PASILLO", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: CUADRA", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: CUADRA", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: CUADRA", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: MATERIALES", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 16", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 2", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 3", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 5", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 6", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación UNIDAD 10", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 11", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 8", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: UNIDAD 9", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },]
 
 const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de combustible", tipo: "combustible", cant: "-" },
     { cat: "COMPRESOR OCEANIC", item: "Estado del combustible", cant: "-" },
@@ -2915,43 +2836,74 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
     { cat: "MOTOSIERRA", item: "Puesta en marcha", cant: "-" },
     { cat: "MOTOSIERRA", item: "Limpieza de filtro", cant: "-" },
     { cat: "MOTOSIERRA", item: "Mantenimiento general", cant: "-" },
-    { cat: "MOTOSIERRA", item: "Limpieza", cant: "-" }, 
-{"cat": "EXTINTOR ZOOM", "item": "N° Interno", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR ZOOM", "item": "N° Cilindro", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR ZOOM", "item": "Vencimiento Carga", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR ZOOM", "item": "Vencimiento P/H", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR ZOOM", "item": "Seguro Colocado", "cant": "N/A" },
-{ "cat": "EXTINTOR ZOOM", "item": "Estado de la Tobera", "cant": "N/A" },
-{ "cat": "EXTINTOR ZOOM", "item": "Estado de Manómetro", "cant": "N/A" },
-{ "cat": "EXTINTOR ZOOM", "item": "Estado de Carga", "cant": "N/A" },
-{ "cat": "EXTINTOR ZOOM", "item": "Limpieza", "cant": "N/A" },
-{ "cat": "EXTINTOR CUADRA", "item": "N° Interno", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR CUADRA", "item": "N° Cilindro", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR CUADRA", "item": "Vencimiento Carga", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR CUADRA", "item": "Vencimiento P/H", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR CUADRA", "item": "Seguro Colocado", "cant": "N/A" },
-{ "cat": "EXTINTOR CUADRA", "item": "Estado de la Tobera", "cant": "N/A" },
-{ "cat": "EXTINTOR CUADRA", "item": "Estado de Manómetro", "cant": "N/A" },
-{ "cat": "EXTINTOR CUADRA", "item": "Estado de Carga", "cant": "N/A" },
-{ "cat": "EXTINTOR CUADRA", "item": "Limpieza", "cant": "N/A" },
-{ "cat": "EXTINTOR GUARDIA", "item": "N° Interno", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR GUARDIA", "item": "N° Cilindro", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR GUARDIA", "item": "Vencimiento Carga", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR GUARDIA", "item": "Vencimiento P/H", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR GUARDIA", "item": "Seguro Colocado", "cant": "N/A" },
-{ "cat": "EXTINTOR GUARDIA", "item": "Estado de la Tobera", "cant": "N/A" },
-{ "cat": "EXTINTOR GUARDIA", "item": "Estado de Manómetro", "cant": "N/A" },
-{ "cat": "EXTINTOR GUARDIA", "item": "Estado de Carga", "cant": "N/A" },
-{ "cat": "EXTINTOR GUARDIA", "item": "Limpieza", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "N° Interno", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "N° Cilindro", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "Vencimiento Carga", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "Vencimiento P/H", tipo: "escritura", cant: "-" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "Seguro Colocado", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "Estado de la Tobera", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
-
-
-
+    { cat: "MOTOSIERRA", item: "Limpieza", cant: "-" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: Zoom", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: Cuadra", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: Cuadra", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: Guardia", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: Unidad 15", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: Unidad 13", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero Interno", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Numero de Cilindro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Ubicación: Unidad 4", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Vencimiento de P/H", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Seguro Colocado", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de la Tobera", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Manómetro", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Estado de Carga", "cant": "N/A" },
+{ "cat": "EXTINTOR", "item": "Limpieza", "cant": "N/A" },];

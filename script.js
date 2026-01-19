@@ -21,11 +21,10 @@ const ENCARGADOS_DATA = {
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
 };
 
-// LISTAS COMPLETAS
 const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
 
 // =========================================================
-//  GESTIÓN DE ALERTAS Y VENCIMIENTOS
+//  GESTIÓN DE ALERTAS
 // =========================================================
 const hoyPrueba = new Date();
 const ayer = new Date(hoyPrueba); ayer.setDate(ayer.getDate() - 1); 
@@ -53,8 +52,7 @@ try {
 if (!VTV_DATA) VTV_DATA = VTV_DEFAULT;
 if (!TAREAS_GENERALES_AUTO) TAREAS_GENERALES_AUTO = TAREAS_DEFAULT;
 
-
-// 2. FUNCIÓN PARA MOSTRAR EL PANEL DE CARGA
+// 2. MOSTRAR PANEL ADMIN (Solo Automotores)
 function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
     
@@ -77,7 +75,7 @@ function mostrarPanelAdmin() {
     actualizarListaVisual();
 }
 
-// 3. FUNCIÓN PARA GUARDAR VENCIMIENTOS
+// 3. GUARDAR VENCIMIENTO
 function guardarNuevoVencimiento() {
     const tipo = document.getElementById("admin-tipo").value;
     const fecha = document.getElementById("admin-fecha").value;
@@ -133,7 +131,7 @@ function actualizarListaVisual() {
     });
 }
 
-// 4. FUNCIÓN PRINCIPAL DE ALERTAS
+// 4. GESTIONAR ALERTAS
 function gestionarAlertas(sector, nombreUnidad) {
     const contenedor = document.getElementById("contenedor-alertas");
     if(!contenedor) return; 
@@ -174,7 +172,6 @@ function gestionarAlertas(sector, nombreUnidad) {
         contenedor.style.display = "block";
     }
 }
-
 // AUTO U-1
 const CONTROLES_U1_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
@@ -3169,3 +3166,4 @@ function toggleObs(idx, mostrar) {
     const el = document.getElementById(`obs-container-${idx}`);
     if(el) el.style.display = mostrar ? 'block' : 'none';
 }
+

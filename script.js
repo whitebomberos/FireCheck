@@ -2983,6 +2983,10 @@ function entrarElectricidad() {
 
 // --- LÓGICA DE LOGIN Y PERMISOS PRINCIPALES ---
 
+// ... (El resto del código de listas y lógica se mantiene igual) ...
+
+// --- LÓGICA DE LOGIN Y PERMISOS PRINCIPALES ---
+
 function iniciarValidacionFaceID() {
     const nom = document.getElementById('nombre-login').value.trim();
     const ape = document.getElementById('apellido-login').value.trim();
@@ -2993,24 +2997,72 @@ function iniciarValidacionFaceID() {
 }
 
 function ingresarAlSistema() {
-    document.getElementById('login-box').style.display = 'none';
-    document.getElementById('welcome-box').style.display = 'block';
-    document.getElementById('saludo-user').innerText = `Bienvenido, ${usuarioActivo}`;
+    // 1. Ocultar Login y Mostrar Home
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('homeScreen').style.display = 'block';
     
-    const display = document.getElementById('user-display');
-    display.innerHTML = `👤 ${usuarioActivo} <button onclick="cerrarSesion()" style="margin-left:10px; background:#b11217; color:white; border:none; padding: 2px 8px; border-radius:4px; cursor:pointer; font-size: 12px;">SALIR</button>`;
+    // 2. Mostrar nombre en el header
+    document.getElementById('user-display-name').innerText = usuarioActivo;
     
+    // 3. Generar las grillas (aunque estén ocultas al principio)
     generarGrillaUnidades();
     generarGrillaMateriales();
 
+    // 4. Lógica de permisos
     const p = ENCARGADOS_DATA[usuarioActivo];
-    document.getElementById('card-automotores').style.display = 'block';
-    document.getElementById('card-materiales').style.display = 'block';
-    document.getElementById('card-electricidad').style.display = 'block';
-    
     if (p) {
         generarBotonesFiltroEncargado(p);
         consultarReportesEncargado(p);
         mostrarPanelAdmin(); 
     }
+}
+
+function cerrarSesion() {
+    if(confirm("¿Cerrar sesión?")) {
+        try { localStorage.removeItem("usuarioBomberosConectado"); } catch(e) {}
+        location.reload(); 
+    }
+}
+
+// Visualización de sectores (Adaptado al nuevo diseño)
+function mostrarBotonesUnidades() {
+    // Validar permisos
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    if (permisos && permisos.includes("SOLO_MATERIALES")) return alert("⛔ Acceso denegado.");
+    if (permisos && permisos.includes("SUBOFICIAL_ELECTRICIDAD")) return alert("⛔ Acceso denegado.");
+
+    // Ocultar Home y Mostrar Pantalla de Gestión
+    document.getElementById('homeScreen').style.display = 'none';
+    document.getElementById('sistema-gestion').style.display = 'block';
+    
+    // Mostrar solo la grilla de autos
+    document.getElementById('grilla-unidades').style.display = 'grid';
+    document.getElementById('grilla-materiales').style.display = 'none';
+    document.getElementById('titulo-control').innerText = "AUTOMOTORES";
+}
+
+function mostrarBotonesMateriales() {
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    if (permisos && permisos.includes("SOLO_AUTOMOTORES")) return alert("⛔ Acceso denegado.");
+    if (permisos && permisos.includes("SUBOFICIAL_ELECTRICIDAD")) return alert("⛔ Acceso denegado.");
+
+    document.getElementById('homeScreen').style.display = 'none';
+    document.getElementById('sistema-gestion').style.display = 'block';
+    
+    document.getElementById('grilla-materiales').style.display = 'grid';
+    document.getElementById('grilla-unidades').style.display = 'none';
+    document.getElementById('titulo-control').innerText = "MATERIALES";
+}
+
+function entrarElectricidad() {
+    const permisos = ENCARGADOS_DATA[usuarioActivo] || [];
+    if (!permisos.includes("SUBOFICIAL_ELECTRICIDAD") && !permisos.includes("SUPER_USUARIO")) return alert("⛔ Acceso denegado.");
+
+    document.getElementById('homeScreen').style.display = 'none';
+    document.getElementById('sistema-electricidad').style.display = 'block';
+    
+    if (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO")) {
+        document.getElementById('admin-electricidad').style.display = 'block';
+    }
+    renderizarTareasElectricas();
 }

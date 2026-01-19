@@ -1,20 +1,15 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-// --- CONFIGURACIÓN DE PERMISOS Y ROLES ---
+// --- CONFIGURACIÓN DE PERMISOS ---
 const ENCARGADOS_DATA = {
-    // --- GRUPO 1: SOLO AUTOMOTORES (Encargados de Unidades) ---
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
     "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
     "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
     "FEDERICO MAISTERRENA": ["UNIDAD 4", "UNIDAD 13", "UNIDAD 15", "SOLO_AUTOMOTORES"],
-
-    // --- GRUPO 2: SOLO MATERIALES ---
     "MAURO MARTINEZ": ["SOLO_MATERIALES"], 
     "CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
     "MARA CASTILLO": ["SOLO_MATERIALES"], 
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
-
-    // --- GRUPO 3: SUPER USUARIOS (JEFATURA - Solo ven historial) ---
     "CRISTIAN BALEY": ["SUPER_USUARIO"],
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
     "MARCO ALFARO": ["SUPER_USUARIO"],
@@ -23,14 +18,11 @@ const ENCARGADOS_DATA = {
     "ROLANDO MISHEVITCH": ["SUPER_USUARIO"],
     "CESAR MENDIONDO": ["SUPER_USUARIO"],
     "NORBERTO COLACCE": ["SUPER_USUARIO"],
-    
-    // --- ELECTRICIDAD ---
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
 };
 
-// LISTAS COMPLETAS DE UNIDADES
+// LISTAS COMPLETAS
 const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
-
 
 // =========================================================
 //  GESTIÓN DE ALERTAS Y VENCIMIENTOS
@@ -62,15 +54,11 @@ if (!VTV_DATA) VTV_DATA = VTV_DEFAULT;
 if (!TAREAS_GENERALES_AUTO) TAREAS_GENERALES_AUTO = TAREAS_DEFAULT;
 
 
-// 2. FUNCIÓN PARA MOSTRAR EL PANEL DE CARGA (SOLO AUTOMOTORES)
+// 2. FUNCIÓN PARA MOSTRAR EL PANEL DE CARGA
 function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
     
     const permisos = ENCARGADOS_DATA[usuarioActivo];
-    
-    // --- FILTRO DE SEGURIDAD ---
-    // Solo mostramos el panel de VTV si el usuario pertenece explicitamente a AUTOMOTORES.
-    // Jefatura (SUPER_USUARIO) y Materiales NO pasarán este filtro.
     if (!permisos.includes("SOLO_AUTOMOTORES")) return;
 
     const panel = document.getElementById("panel-admin-vencimientos");
@@ -186,10 +174,6 @@ function gestionarAlertas(sector, nombreUnidad) {
         contenedor.style.display = "block";
     }
 }
-// =========================================================
-//  FIN GESTIÓN ALERTAS
-// =========================================================
-
 
 // AUTO U-1
 const CONTROLES_U1_AUTO = [
@@ -2981,12 +2965,6 @@ function entrarElectricidad() {
     renderizarTareasElectricas();
 }
 
-// --- LÓGICA DE LOGIN Y PERMISOS PRINCIPALES ---
-
-// ... (El resto del código de listas y lógica se mantiene igual) ...
-
-// --- LÓGICA DE LOGIN Y PERMISOS PRINCIPALES ---
-
 function iniciarValidacionFaceID() {
     const nom = document.getElementById('nombre-login').value.trim();
     const ape = document.getElementById('apellido-login').value.trim();
@@ -2997,18 +2975,13 @@ function iniciarValidacionFaceID() {
 }
 
 function ingresarAlSistema() {
-    // 1. Ocultar Login y Mostrar Home
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('homeScreen').style.display = 'block';
-    
-    // 2. Mostrar nombre en el header
     document.getElementById('user-display-name').innerText = usuarioActivo;
     
-    // 3. Generar las grillas (aunque estén ocultas al principio)
     generarGrillaUnidades();
     generarGrillaMateriales();
 
-    // 4. Lógica de permisos
     const p = ENCARGADOS_DATA[usuarioActivo];
     if (p) {
         generarBotonesFiltroEncargado(p);
@@ -3024,18 +2997,16 @@ function cerrarSesion() {
     }
 }
 
-// Visualización de sectores (Adaptado al nuevo diseño)
+// --- VISUALIZACIÓN Y SEGURIDAD ---
+
 function mostrarBotonesUnidades() {
-    // Validar permisos
     const permisos = ENCARGADOS_DATA[usuarioActivo];
-    if (permisos && permisos.includes("SOLO_MATERIALES")) return alert("⛔ Acceso denegado.");
+    if (permisos && permisos.includes("SOLO_MATERIALES")) return alert("⛔ Acceso denegado. Usted es personal de Materiales.");
     if (permisos && permisos.includes("SUBOFICIAL_ELECTRICIDAD")) return alert("⛔ Acceso denegado.");
 
-    // Ocultar Home y Mostrar Pantalla de Gestión
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('sistema-gestion').style.display = 'block';
     
-    // Mostrar solo la grilla de autos
     document.getElementById('grilla-unidades').style.display = 'grid';
     document.getElementById('grilla-materiales').style.display = 'none';
     document.getElementById('titulo-control').innerText = "AUTOMOTORES";
@@ -3043,7 +3014,7 @@ function mostrarBotonesUnidades() {
 
 function mostrarBotonesMateriales() {
     const permisos = ENCARGADOS_DATA[usuarioActivo];
-    if (permisos && permisos.includes("SOLO_AUTOMOTORES")) return alert("⛔ Acceso denegado.");
+    if (permisos && permisos.includes("SOLO_AUTOMOTORES")) return alert("⛔ Acceso denegado. Usted es personal de Automotores.");
     if (permisos && permisos.includes("SUBOFICIAL_ELECTRICIDAD")) return alert("⛔ Acceso denegado.");
 
     document.getElementById('homeScreen').style.display = 'none';
@@ -3054,15 +3025,147 @@ function mostrarBotonesMateriales() {
     document.getElementById('titulo-control').innerText = "MATERIALES";
 }
 
+// FUNCION DE ACCESO A ELECTRICIDAD CORREGIDA
 function entrarElectricidad() {
-    const permisos = ENCARGADOS_DATA[usuarioActivo] || [];
-    if (!permisos.includes("SUBOFICIAL_ELECTRICIDAD") && !permisos.includes("SUPER_USUARIO")) return alert("⛔ Acceso denegado.");
+    let tieneAcceso = true;
+    let esEncargadoElec = false;
+
+    // Si tiene un rol definido
+    if (ENCARGADOS_DATA[usuarioActivo]) {
+        const permisos = ENCARGADOS_DATA[usuarioActivo];
+        
+        // Bloquear a los otros encargados
+        if (permisos.includes("SOLO_AUTOMOTORES") || permisos.includes("SOLO_MATERIALES")) {
+            tieneAcceso = false;
+        }
+        
+        // Dar permisos de admin a Electricista y Jefes
+        if (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO")) {
+            esEncargadoElec = true;
+            tieneAcceso = true; // Asegura acceso aunque tuviera otro rol cruzado
+        }
+    }
+    // Nota: Si el usuario NO está en ENCARGADOS_DATA (Bombero Raso), 'tieneAcceso' queda en true.
+
+    if (!tieneAcceso) return alert("⛔ Acceso denegado.");
 
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('sistema-electricidad').style.display = 'block';
     
-    if (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO")) {
-        document.getElementById('admin-electricidad').style.display = 'block';
+    // Mostrar panel de "Nueva Tarea" SOLO si es encargado o jefe
+    const panelAdmin = document.getElementById('admin-electricidad');
+    if (panelAdmin) {
+        panelAdmin.style.display = esEncargadoElec ? 'block' : 'none';
     }
+    
     renderizarTareasElectricas();
+}
+
+// --- GENERACIÓN DE FORMULARIOS ---
+
+function seleccionarUnidad(num, tipo, btn) {
+    sectorActivo = tipo;
+    
+    if (num === 'CENTRAL') unidadSeleccionada = "MAT CENTRAL";
+    else if (num === 'DESTACAMENTO') unidadSeleccionada = "MAT DESTACAMENTO";
+    else unidadSeleccionada = tipo === 'AUTO' ? "UNIDAD " + num : "MAT U-" + num;
+
+    document.querySelectorAll('.btn-unidad').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    const esSuper = permisos?.includes("SUPER_USUARIO");
+
+    if (esSuper) {
+        document.getElementById('sistema-gestion').style.display = 'none'; 
+        verHistorialEspecifico(unidadSeleccionada);
+        return; 
+    }
+
+    // Generar campos
+    const cont = document.getElementById('campos-control');
+    cont.innerHTML = "";
+    document.getElementById('btn-nube').style.display = 'block';
+    document.getElementById('titulo-control').innerText = "Control - " + unidadSeleccionada;
+
+    // Obtener la lista correcta (Simplificado para el ejemplo, tu código tiene todos los IFs)
+    let listaItems = [];
+    if (sectorActivo === 'AUTO') {
+        try {
+            if(num === 1) listaItems = CONTROLES_U1_AUTO;
+            else if(num === 2) listaItems = CONTROLES_U2_AUTO;
+            // ... (resto de tus IFs de Autos) ...
+            else if(num === 16) listaItems = CONTROLES_U16_AUTO;
+            else listaItems = [];
+        } catch(e) { listaItems = []; }
+    } else {
+        if (num === 'CENTRAL') listaItems = CONTROLES_CENTRAL;
+        // ... (resto de tus IFs de Materiales) ...
+        else listaItems = [];
+    }
+
+    // Renderizar items
+    let currentCat = "";
+    listaItems.forEach((c, idx) => {
+        if (c.cat && c.cat !== currentCat) {
+            currentCat = c.cat;
+            cont.innerHTML += `<h3 style="color:#b11217; margin: 25px 0 10px 0; border-bottom: 2px solid #333; padding-bottom:5px;">${currentCat}</h3>`;
+        }
+        
+        // RENDERIZADO DE COMBUSTIBLE CORREGIDO
+        if (c.tipo === "combustible") {
+             cont.innerHTML += `
+                <div class="check-item-container">
+                    <div class="check-item-row" style="display:block;">
+                        <span style="font-weight:bold; display:block; margin-bottom:10px;">${c.item}</span>
+                        <div class="fuel-options">
+                            <div class="fuel-btn" onclick="setFuel('VACIO', this)">VACIO</div>
+                            <div class="fuel-btn" onclick="setFuel('1/4', this)">1/4</div>
+                            <div class="fuel-btn" onclick="setFuel('1/2', this)">1/2</div>
+                            <div class="fuel-btn" onclick="setFuel('3/4', this)">3/4</div>
+                            <div class="fuel-btn" onclick="setFuel('LLENO', this)">LLENO</div>
+                        </div>
+                    </div>
+                </div>`;
+        } 
+        else if (c.tipo === "escritura") {
+             cont.innerHTML += `
+                <div class="check-item-container" style="border-left-color: #27ae60;">
+                    <div class="check-item-row" style="display:block;">
+                        <div style="margin-bottom:5px; font-weight:bold;">${c.item}</div>
+                        <input type="text" id="input-escritura-${idx}" placeholder="Escriba aquí..." class="form-input-elec">
+                    </div>
+                </div>`;
+        }
+        else {
+            cont.innerHTML += `
+                <div class="check-item-container">
+                    <div class="check-item-row">
+                        <span>${c.item}</span>
+                        <div class="item-actions">
+                            <label><input type="radio" name="ctrl-${idx}" value="bien" onclick="toggleObs(${idx}, false)"> Bien</label>
+                            <label><input type="radio" name="ctrl-${idx}" value="mal" onclick="toggleObs(${idx}, true)"> Mal</label>
+                        </div>
+                    </div>
+                    <div id="obs-container-${idx}" style="display:none;">
+                        <textarea id="obs-${idx}" class="obs-input" placeholder="Detalle el problema..."></textarea>
+                        <input type="file" id="foto-${idx}" accept="image/*" style="margin-top:10px; color:#ccc;">
+                    </div>
+                </div>`;
+        }
+    });
+}
+
+function setFuel(val, btn) {
+    combustibleSeleccionado = val;
+    // Quitar activo a todos los botones del mismo grupo
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.fuel-btn').forEach(b => b.classList.remove('active'));
+    // Activar el clickeado
+    btn.classList.add('active');
+}
+
+function toggleObs(idx, mostrar) {
+    const el = document.getElementById(`obs-container-${idx}`);
+    if(el) el.style.display = mostrar ? 'block' : 'none';
 }

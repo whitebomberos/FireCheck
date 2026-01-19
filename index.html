@@ -24,7 +24,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ===== PANTALLA LOGIN ===== */
+        /* ===== LOGIN ===== */
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
@@ -62,14 +62,13 @@
         }
         .btn-login:active { transform: scale(0.98); }
 
-        /* ===== PANTALLA PRINCIPAL (HOME) ===== */
+        /* ===== HOME ===== */
         #homeScreen {
             display: none; padding: 20px;
             animation: fadeIn 0.8s ease;
             min-height: 100vh;
         }
 
-        /* Encabezado */
         header {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 40px; padding-bottom: 20px;
@@ -84,7 +83,6 @@
 
         h2 { font-size: 24px; font-weight: 800; margin-bottom: 30px; border-left: 5px solid #b80000; padding-left: 15px; text-transform: uppercase; }
 
-        /* Sectores */
         .sectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
         
         .sector {
@@ -114,7 +112,6 @@
         .sector.elec { border-left: 6px solid #ffd000; }
         .sector.elec h3 { color: #ffd000; }
 
-        /* Contactos */
         .contacts { margin-top: 60px; }
         .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
         .contact {
@@ -126,7 +123,7 @@
         .contact h4 { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
         .contact p { font-size: 13px; color: #888; margin: 0; }
 
-        /* ===== ÁREA DE TRABAJO ===== */
+        /* ===== WORK AREAS ===== */
         #sistema-gestion, #sistema-electricidad {
             display: none; background: #0f0f0f; min-height: 100vh; padding: 20px;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -164,7 +161,6 @@
         }
         .item-actions label:has(input:checked) { background: #fff; color: #000; }
         
-        /* ESTILOS DE COMBUSTIBLE (NUEVO) */
         .fuel-options { display: flex; gap: 5px; width: 100%; margin-top: 10px; justify-content: space-between; }
         .fuel-btn { 
             padding: 12px 5px; border: 1px solid #444; border-radius: 8px; 
@@ -183,6 +179,14 @@
             font-size: 16px; text-transform: uppercase; letter-spacing: 1px;
         }
 
+        /* ESTILOS ESPECIFICOS DE ELECTRICIDAD */
+        .form-label { font-size: 12px; font-weight: 700; color: #888; margin-top: 10px; display: block; text-transform: uppercase; }
+        .form-input { 
+            width: 100%; padding: 12px; background: #222; border: 1px solid #444; 
+            color: white; border-radius: 8px; margin-top: 5px; font-family: inherit; 
+        }
+        .form-input:focus { border-color: #ffd000; outline: none; }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) { .grid-unidades { grid-template-columns: repeat(2, 1fr); } }
     </style>
@@ -207,7 +211,7 @@
                     <i class="fa-solid fa-fire-extinguisher"></i>
                 </div>
                 <div>
-                    <strong style="display:block; font-size:16px;">Sistema de gestion y control</strong>
+                    <strong style="display:block; font-size:16px;">SISTEMA OPERATIVO</strong>
                     <span style="opacity:.6; font-size:11px;">BOMBEROS VOLUNTARIOS</span>
                 </div>
             </div>
@@ -283,14 +287,44 @@
             <h2 style="margin:0; border:none; color:#ffd000;">ELECTRICIDAD</h2>
             <button class="btn-volver" onclick="volverAlMenu()">VOLVER</button>
         </div>
-        <div id="admin-electricidad" style="display:none; background:#1a1a1a; padding:20px; border-radius:10px; margin-bottom:20px;">
-            <h3 style="color:#ffd000; margin-bottom:15px;">NUEVA TAREA</h3>
-            <input type="text" id="elec-lugar" placeholder="Lugar" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:1px solid #444; color:white;">
-            <select id="elec-tipo" style="width:100%; padding:10px; margin-bottom:10px; background:#222; border:1px solid #444; color:white;">
-                <option>Reparación</option><option>Instalación</option>
+        
+        <div id="admin-electricidad" style="display:none; background:#1a1a1a; padding:20px; border-radius:10px; margin-bottom:20px; border:1px solid #333;">
+            <h3 style="color:#ffd000; margin-bottom:15px; margin-top:0;">➕ NUEVA TAREA</h3>
+            
+            <label class="form-label">TIPO DE TRABAJO</label>
+            <select id="elec-tipo" class="form-input">
+                <option>Reparación</option>
+                <option>Instalación</option>
+                <option>Mantenimiento</option>
+                <option>Otro</option>
             </select>
-            <button onclick="crearTareaElectrica()" style="width:100%; padding:15px; background:#ffd000; color:black; border:none; border-radius:8px; font-weight:bold;">CREAR</button>
+
+            <label class="form-label">LUGAR / SECTOR</label>
+            <input type="text" id="elec-lugar" class="form-input">
+
+            <label class="form-label">DESCRIPCIÓN</label>
+            <textarea id="elec-desc" class="form-input" rows="3"></textarea>
+
+            <label class="form-label">MATERIALES NECESARIOS</label>
+            <textarea id="elec-mat" class="form-input" rows="2" placeholder="Ej: Cables, Focos..."></textarea>
+
+            <label class="form-label">PRIORIDAD</label>
+            <select id="elec-prio" class="form-input">
+                <option>Baja</option>
+                <option>Media</option>
+                <option>Alta</option>
+            </select>
+
+            <label class="form-label">FECHA LÍMITE</label>
+            <input type="date" id="elec-fecha" class="form-input">
+
+            <label class="form-label">ASIGNAR A</label>
+            <input type="text" id="elec-asignado" class="form-input" placeholder="Nombre del bombero">
+
+            <button onclick="crearTareaElectrica()" style="width:100%; padding:15px; background:#ffd000; color:black; border:none; border-radius:8px; font-weight:bold; margin-top:20px; cursor:pointer;">CREAR TAREA</button>
         </div>
+
+        <h3 style="color:#fff; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">📋 LISTA DE TAREAS</h3>
         <div id="listaTareasElectricas"></div>
     </div>
 
@@ -300,7 +334,18 @@
             <button class="btn-volver" onclick="document.getElementById('panel-consulta-encargado').style.display='none'; document.getElementById('sistema-gestion').style.display='none'; document.getElementById('homeScreen').style.display='block';">CERRAR</button>
         </div>
         <div id="selector-unidades-encargado"></div>
-        <table class="history-table" style="width:100%; color:#ccc; font-size:12px; margin-top:20px;">
+        <table class="history-table" style="width:100%; color:#ccc; font-size:12px; margin-top:20px; border-collapse: collapse;">
+            <thead>
+                <tr style="background:#222; text-align:left;">
+                    <th style="padding:10px;">FECHA</th>
+                    <th style="padding:10px;">ENCARGADO</th>
+                    <th style="padding:10px;">UNIDAD</th>
+                    <th style="padding:10px;">CONTROL</th>
+                    <th style="padding:10px;">ESTADO</th>
+                    <th style="padding:10px;">OBS</th>
+                    <th style="padding:10px;">FOTO</th>
+                </tr>
+            </thead>
             <tbody id="cuerpo-consulta-encargado"></tbody>
         </table>
     </div>
@@ -319,4 +364,3 @@
     </script>
 </body>
 </html>
-

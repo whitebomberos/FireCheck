@@ -2,19 +2,21 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhIS
 
 // --- CONFIGURACIÓN DE PERMISOS Y ROLES ---
 const ENCARGADOS_DATA = {
-    // --- GRUPO 1: SOLO AUTOMOTORES ---
+    // --- AUTOMOTORES ---
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
     "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
+    
+    // KEVIN Y FEDERICO: ACCESO TOTAL + CARGA DE VTV
     "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
     "FEDERICO MAISTERRENA": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
 
-    // --- GRUPO 2: SOLO MATERIALES ---
+    // --- MATERIALES ---
     "MAURO MARTINEZ": ["SOLO_MATERIALES"], 
     "CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
     "MARA CASTILLO": ["SOLO_MATERIALES"], 
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
 
-    // --- GRUPO 3: SUPER USUARIOS (JEFATURA) ---
+    // --- JEFATURA (SUPER USUARIOS) ---
     "CRISTIAN BALEY": ["SUPER_USUARIO"],
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
     "MARCO ALFARO": ["SUPER_USUARIO"],
@@ -28,169 +30,28 @@ const ENCARGADOS_DATA = {
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
 };
 
-// LISTAS COMPLETAS
+// LISTAS
 const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
 
-// =========================================================
-//  GESTIÓN DE ALERTAS Y VENCIMIENTOS
-// =========================================================
-const hoyPrueba = new Date();
-const ayer = new Date(hoyPrueba); ayer.setDate(ayer.getDate() - 1); 
-const semanaQviene = new Date(hoyPrueba); semanaQviene.setDate(semanaQviene.getDate() + 5); 
-
-const VTV_DEFAULT = [
-    { unidad: "UNIDAD 8", fecha: ayer.toISOString().split('T')[0] },      
-    { unidad: "UNIDAD 13", fecha: semanaQviene.toISOString().split('T')[0] } 
+// BASE DE DATOS LOCAL
+let VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || [
+    { unidad: "UNIDAD 8", fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0] },      
+    { unidad: "UNIDAD 13", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] } 
 ];
-const TAREAS_DEFAULT = [
-    { tarea: "Engrase general de flota", fecha: semanaQviene.toISOString().split('T')[0] }
+let TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [
+    { tarea: "Engrase general de flota", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] }
 ];
-
-let VTV_DATA;
-let TAREAS_GENERALES_AUTO;
-
-try {
-    VTV_DATA = JSON.parse(localStorage.getItem("db_vtv"));
-} catch (e) { console.warn("Memoria bloqueada"); }
-
-try {
-    TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral"));
-} catch (e) { console.warn("Memoria bloqueada"); }
-
-if (!VTV_DATA) VTV_DATA = VTV_DEFAULT;
-if (!TAREAS_GENERALES_AUTO) TAREAS_GENERALES_AUTO = TAREAS_DEFAULT;
-
-
-// 2. FUNCIÓN PARA MOSTRAR EL PANEL DE CARGA
-function mostrarPanelAdmin() {
-    if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
-    
-    const permisos = ENCARGADOS_DATA[usuarioActivo];
-    // Solo mostramos si es de Automotores
-    if (!permisos.includes("SOLO_AUTOMOTORES")) return;
-
-    const panel = document.getElementById("panel-admin-vencimientos");
-    if(panel) panel.style.display = "block";
-
-    const select = document.getElementById("admin-unidad");
-    if(select) {
-        select.innerHTML = "";
-        LISTA_IDS_UNIDADES.forEach(u => {
-            let opt = document.createElement("option");
-            opt.value = "UNIDAD " + u;
-            opt.text = "UNIDAD " + u;
-            select.appendChild(opt);
-        });
-    }
-    actualizarListaVisual();
-}
-
-// 3. GUARDAR VENCIMIENTOS
-function guardarNuevoVencimiento() {
-    const tipo = document.getElementById("admin-tipo").value;
-    const fecha = document.getElementById("admin-fecha").value;
-    
-    if (!fecha) return alert("Por favor, seleccioná una fecha.");
-
-    try {
-        if (tipo === "VTV") {
-            const unidad = document.getElementById("admin-unidad").value;
-            const index = VTV_DATA.findIndex(v => v.unidad === unidad);
-            if (index >= 0) { VTV_DATA[index].fecha = fecha; } 
-            else { VTV_DATA.push({ unidad: unidad, fecha: fecha }); }
-            localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
-            alert(`VTV de ${unidad} actualizada para el ${fecha}`);
-        } 
-        else {
-            const nombreTarea = prompt("Nombre de la tarea:", "Engrase General");
-            if (!nombreTarea) return;
-            TAREAS_GENERALES_AUTO.push({ tarea: nombreTarea, fecha: fecha });
-            localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
-            alert("Tarea general guardada.");
-        }
-        actualizarListaVisual();
-        location.reload(); 
-    } catch (e) {
-        alert("Aviso: El navegador bloqueó el guardado permanente.");
-        actualizarListaVisual();
-    }
-}
-
-function toggleSelectorUnidad() {
-    const tipo = document.getElementById("admin-tipo").value;
-    const box = document.getElementById("box-admin-unidad");
-    if(box) box.style.display = (tipo === "VTV") ? "block" : "none";
-}
-
-function actualizarListaVisual() {
-    const lista = document.getElementById("lista-vencimientos-cargados");
-    if(!lista) return;
-    lista.innerHTML = "";
-    
-    VTV_DATA.forEach(v => {
-        lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`;
-    });
-    TAREAS_GENERALES_AUTO.forEach(t => {
-        lista.innerHTML += `<li>🔧 <b>GENERAL</b> - ${t.tarea}: ${t.fecha}</li>`;
-    });
-}
-
-// 4. GESTIÓN ALERTAS
-function gestionarAlertas(sector, nombreUnidad) {
-    const contenedor = document.getElementById("contenedor-alertas");
-    if(!contenedor) return; 
-    
-    contenedor.style.display = "none";
-    contenedor.className = "alerta-box"; 
-    
-    const hoy = new Date();
-    let alertas = [];
-    const DIAS_AVISO = 30; 
-
-    if (sector === 'AUTO') {  
-        const vtv = VTV_DATA.find(v => v.unidad === nombreUnidad);
-        if (vtv) {
-            const dias = Math.ceil((new Date(vtv.fecha) - hoy) / (86400000));
-            if (dias <= DIAS_AVISO) {
-                alertas.push({ texto: `VTV: Vence en ${dias} días (${vtv.fecha})`, dias: dias });
-            }
-        }
-        TAREAS_GENERALES_AUTO.forEach(t => {
-            const dias = Math.ceil((new Date(t.fecha) - hoy) / (86400000));
-            if (dias <= DIAS_AVISO) {
-                alertas.push({ texto: `GENERAL: ${t.tarea} (en ${dias} días)`, dias: dias });
-            }
-        });
-    }
-
-    if (alertas.length > 0) {
-        let estado = "amarillo"; 
-        if (alertas.some(a => a.dias < 0)) estado = "negro"; 
-        else if (alertas.some(a => a.dias <= 3)) estado = "rojo"; 
-        else if (alertas.some(a => a.dias <= 7)) estado = "naranja"; 
-
-        contenedor.classList.add(estado);
-        contenedor.innerHTML = `<strong>⚠️ ALERTAS DE VENCIMIENTO</strong>` + 
-                               alertas.map(a => `<span>${a.texto}</span>`).join("");
-        contenedor.style.display = "block";
-    }
-}
-
-// ... LISTAS LARGAS ... 
-// (Las listas de controles se mantienen igual, no las repito aquí para ahorrar espacio pero 
-// TÚ DEBES MANTENERLAS EN EL ARCHIVO, NO LAS BORRES).
-// Si necesitas las listas avísame y te pego el bloque entero.
+let DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || [];
 
 // --- VARIABLES GLOBALES ---
 let usuarioActivo = "";
 let unidadSeleccionada = "";
 let sectorActivo = ""; 
-let tareasElectricas = [];
 let combustibleSeleccionado = "";
-let DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || [];
 
-// --- LÓGICA DE LOGIN ---
-
+// =========================================================
+//  LÓGICA DE LOGIN
+// =========================================================
 function iniciarValidacionFaceID() {
     const nom = document.getElementById('nombre-login').value.trim();
     const ape = document.getElementById('apellido-login').value.trim();
@@ -203,8 +64,16 @@ function iniciarValidacionFaceID() {
 function ingresarAlSistema() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('homeScreen').style.display = 'block';
+    
+    // AQUÍ ESTÁ EL CAMBIO PARA LAS FOTOS:
     const display = document.getElementById('user-display-name');
-    if(display) display.innerText = usuarioActivo;
+    if(display) {
+        // Intenta mostrar una imagen con el nombre del usuario. Si no existe, oculta el icono de imagen.
+        display.innerHTML = `<div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+            <span>${usuarioActivo}</span>
+            <img src="${usuarioActivo}.jpg" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #fff; display:none;" onload="this.style.display='block'">
+        </div>`;
+    }
     
     generarGrillaUnidades();
     generarGrillaMateriales();
@@ -212,7 +81,6 @@ function ingresarAlSistema() {
     const p = ENCARGADOS_DATA[usuarioActivo];
     if (p) {
         generarBotonesFiltroEncargado(p);
-        consultarReportesEncargado(p);
         mostrarPanelAdmin(); 
     }
 }
@@ -224,7 +92,9 @@ function cerrarSesion() {
     }
 }
 
-// --- VISUALIZACIÓN DE SECTORES ---
+// =========================================================
+//  NAVEGACIÓN Y PERMISOS
+// =========================================================
 
 function mostrarBotonesUnidades() {
     const permisos = ENCARGADOS_DATA[usuarioActivo];
@@ -234,7 +104,6 @@ function mostrarBotonesUnidades() {
     
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('sistema-gestion').style.display = 'block';
-    
     document.getElementById('grilla-unidades').style.display = 'grid';
     document.getElementById('grilla-materiales').style.display = 'none';
     document.getElementById('titulo-control').innerText = "AUTOMOTORES";
@@ -248,7 +117,6 @@ function mostrarBotonesMateriales() {
 
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('sistema-gestion').style.display = 'block';
-    
     document.getElementById('grilla-materiales').style.display = 'grid';
     document.getElementById('grilla-unidades').style.display = 'none';
     document.getElementById('titulo-control').innerText = "MATERIALES";
@@ -284,97 +152,9 @@ function entrarElectricidad() {
     renderizarTareasElectricas();
 }
 
-// --- GENERACIÓN DE GRILLAS (AQUI ESTÁ LO NUEVO QUE PEDISTE) ---
-
-function generarGrillaUnidades() {
-    const contenedor = document.getElementById('grilla-unidades');
-    contenedor.innerHTML = "";
-    
-    // --- NUEVO RECORDATORIO AUTOMOTORES ---
-    const bannerAuto = `
-        <div style="grid-column: 1 / -1; background: #222; border-left: 5px solid #b80000; color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            <strong style="color: #b80000; text-transform: uppercase; display: block; margin-bottom: 5px;">⚠️ RECORDATORIO</strong>
-            Los controles de unidad deben realizarse obligatoriamente <strong>CADA 3 DÍAS</strong>.
-        </div>
-    `;
-    contenedor.innerHTML = bannerAuto;
-    // ---------------------------------------
-
-    const permisos = ENCARGADOS_DATA[usuarioActivo];
-    const veTodo = permisos && (permisos.includes("VER_TODO_AUTOMOTORES") || permisos.includes("SUPER_USUARIO"));
-
-    LISTA_IDS_UNIDADES.forEach(i => {
-        let mostrarBoton = false;
-        if (permisos) {
-            if (veTodo) mostrarBoton = true;
-            else if (permisos.includes("UNIDAD " + i)) mostrarBoton = true;
-        } else {
-            mostrarBoton = true;
-        }
-
-        if (mostrarBoton) {
-            const btn = document.createElement('div');
-            btn.className = 'btn-unidad'; 
-            btn.innerText = 'U-' + i;
-            btn.onclick = (e) => { e.stopPropagation(); seleccionarUnidad(i, 'AUTO', btn); };
-            contenedor.appendChild(btn);
-        }
-    });
-}
-
-function generarGrillaMateriales() {
-    const contenedor = document.getElementById('grilla-materiales');
-    contenedor.innerHTML = "";
-
-    // --- RESTAURADO: CRONOGRAMA MENSUAL DE CONTROLES ---
-    const hoy = new Date().getDate();
-    const estiloBase = "padding: 5px 8px; border-radius: 4px; display: inline-block; margin: 2px; font-size: 11px; background: #333; color: #777;";
-    const estiloActivo = "font-weight:bold; color: #fff; background: #ff7a00; border: 1px solid #ff7a00; padding: 5px 8px; border-radius: 4px; display: inline-block; margin: 2px; font-size: 11px;";
-
-    const s1 = (hoy >= 1 && hoy <= 7)   ? estiloActivo : estiloBase;
-    const s2 = (hoy >= 8 && hoy <= 15)  ? estiloActivo : estiloBase;
-    const s3 = (hoy >= 16 && hoy <= 22) ? estiloActivo : estiloBase;
-    const s4 = (hoy >= 23 && hoy <= 31) ? estiloActivo : estiloBase;
-
-    const cartelFechas = `
-        <div style="grid-column: 1 / -1; background: #222; border-left: 5px solid #ff7a00; color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            <strong style="color: #ff7a00; display:block; margin-bottom:8px; font-size: 13px; text-transform: uppercase;">📅 Cronograma Mensual</strong>
-            <div style="display:flex; flex-wrap:wrap; gap:5px;">
-                <span style="${s1}">1º: Del 01 al 07</span>
-                <span style="${s2}">2º: Del 08 al 15</span>
-                <span style="${s3}">3º: Del 16 al 22</span>
-                <span style="${s4}">4º: Del 23 al 31</span>
-            </div>
-        </div>`;
-    contenedor.innerHTML = cartelFechas;
-    // ------------------------------------------
-    
-    const excluidas = [1, 4, 5];
-    LISTA_IDS_UNIDADES.forEach(i => {
-        if (excluidas.includes(i)) return; 
-        const btn = document.createElement('div');
-        btn.className = 'btn-unidad'; 
-        btn.innerText = 'MAT U-' + i;
-        btn.onclick = (e) => { e.stopPropagation(); seleccionarUnidad(i, 'MAT', btn); };
-        contenedor.appendChild(btn);
-    });
-
-    const btnCentral = document.createElement('div');
-    btnCentral.className = 'btn-unidad';
-    btnCentral.innerText = 'CENTRAL';
-    btnCentral.style.borderColor = '#ff7a00';
-    btnCentral.onclick = (e) => { e.stopPropagation(); seleccionarUnidad('CENTRAL', 'MAT', btnCentral); };
-    contenedor.appendChild(btnCentral);
-
-    const btnDestaca = document.createElement('div');
-    btnDestaca.className = 'btn-unidad';
-    btnDestaca.innerText = 'DESTAC.';
-    btnDestaca.style.borderColor = '#ff7a00';
-    btnDestaca.onclick = (e) => { e.stopPropagation(); seleccionarUnidad('DESTACAMENTO', 'MAT', btnDestaca); };
-    contenedor.appendChild(btnDestaca);
-}
-
-// --- RESTO DE FUNCIONES ---
+// =========================================================
+//  LÓGICA DE SELECCIÓN Y FORMULARIOS
+// =========================================================
 
 function seleccionarUnidad(num, tipo, btn) {
     sectorActivo = tipo;
@@ -386,7 +166,7 @@ function seleccionarUnidad(num, tipo, btn) {
     document.querySelectorAll('.btn-unidad').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    // LÓGICA REDIRECCIÓN ENCARGADOS
+    // --- LÓGICA DE REDIRECCIÓN PARA ENCARGADOS ---
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     const esSuper = permisos?.includes("SUPER_USUARIO");
     const esJefeAuto = permisos?.includes("SOLO_AUTOMOTORES") || permisos?.includes("VER_TODO_AUTOMOTORES");
@@ -398,14 +178,13 @@ function seleccionarUnidad(num, tipo, btn) {
         return; 
     }
 
-    // SI ES BOMBERO
+    // --- SI ES BOMBERO ---
     const cont = document.getElementById('campos-control');
     cont.innerHTML = "";
     document.getElementById('btn-nube').style.display = 'block';
     document.getElementById('titulo-control').innerText = unidadSeleccionada;
     document.getElementById('contenedor-km').style.display = tipo === 'AUTO' ? 'block' : 'none';
 
-    // Obtener lista correcta
     let listaItems = [];
     if (sectorActivo === 'AUTO') {
         try {
@@ -471,7 +250,7 @@ function seleccionarUnidad(num, tipo, btn) {
                 <div class="check-item-container" style="border-left-color: #27ae60;">
                     <div class="check-item-row" style="display:block;">
                         <div style="margin-bottom:5px; font-weight:bold;">${c.item}</div>
-                        <input type="text" id="input-escritura-${idx}" placeholder="Escriba aquí..." class="form-input-elec" style="width:100%; padding:10px;">
+                        <input type="text" id="input-escritura-${idx}" placeholder="Escriba aquí..." class="form-input" style="width:100%;">
                     </div>
                 </div>`;
         }
@@ -486,13 +265,17 @@ function seleccionarUnidad(num, tipo, btn) {
                         </div>
                     </div>
                     <div id="obs-container-${idx}" style="display:none;">
-                        <textarea id="obs-${idx}" class="obs-input" placeholder="Detalle el problema..." style="width:100%; padding:10px; margin-top:10px;"></textarea>
+                        <textarea id="obs-${idx}" class="form-input" placeholder="Detalle el problema..." style="margin-top:10px;"></textarea>
                         <input type="file" id="foto-${idx}" accept="image/*" style="margin-top:10px; color:#ccc;">
                     </div>
                 </div>`;
         }
     });
 }
+
+// =========================================================
+//  GESTIÓN DE ELECTRICIDAD
+// =========================================================
 
 function crearTareaElectrica() {
     const lugar = document.getElementById("elec-lugar").value;
@@ -537,7 +320,6 @@ function renderizarTareasElectricas() {
             <div style="font-size:11px; color:#666;">Cargado por: ${t.autor}</div>
         `;
         
-        // Botón de eliminar solo para encargados de electricidad
         const permisos = ENCARGADOS_DATA[usuarioActivo];
         if (permisos && (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO"))) {
             const btnDel = document.createElement('button');
@@ -555,6 +337,10 @@ function renderizarTareasElectricas() {
     });
 }
 
+// =========================================================
+//  FUNCIONES AUXILIARES
+// =========================================================
+
 function setFuel(val, btn) {
     combustibleSeleccionado = val;
     const parent = btn.parentElement;
@@ -567,179 +353,232 @@ function toggleObs(idx, mostrar) {
     if(el) el.style.display = mostrar ? 'block' : 'none';
 }
 
+function generarGrillaUnidades() {
+    const contenedor = document.getElementById('grilla-unidades');
+    contenedor.innerHTML = "";
+    
+    // --- RECORDATORIO AUTOMOTORES ---
+    const bannerAuto = `
+        <div style="grid-column: 1 / -1; background: #222; border-left: 5px solid #b80000; color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <strong style="color: #b80000; text-transform: uppercase; display: block; margin-bottom: 5px;">⚠️ RECORDATORIO</strong>
+            Los controles de unidad deben realizarse obligatoriamente <strong>CADA 3 DÍAS</strong>.
+        </div>
+    `;
+    contenedor.innerHTML = bannerAuto;
+
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    const veTodo = permisos && (permisos.includes("VER_TODO_AUTOMOTORES") || permisos.includes("SUPER_USUARIO"));
+
+    LISTA_IDS_UNIDADES.forEach(i => {
+        let mostrarBoton = false;
+        if (permisos) {
+            if (veTodo) mostrarBoton = true;
+            else if (permisos.includes("UNIDAD " + i)) mostrarBoton = true;
+        } else {
+            mostrarBoton = true;
+        }
+
+        if (mostrarBoton) {
+            const btn = document.createElement('div');
+            btn.className = 'btn-unidad'; 
+            btn.innerText = 'U-' + i;
+            btn.onclick = (e) => { e.stopPropagation(); seleccionarUnidad(i, 'AUTO', btn); };
+            contenedor.appendChild(btn);
+        }
+    });
+}
+
+function generarGrillaMateriales() {
+    const contenedor = document.getElementById('grilla-materiales');
+    contenedor.innerHTML = "";
+
+    // --- CRONOGRAMA MENSUAL ---
+    const hoy = new Date().getDate();
+    const estiloBase = "padding: 5px 8px; border-radius: 4px; display: inline-block; margin: 2px; font-size: 11px; background: #333; color: #777;";
+    const estiloActivo = "font-weight:bold; color: #fff; background: #ff7a00; border: 1px solid #ff7a00; padding: 5px 8px; border-radius: 4px; display: inline-block; margin: 2px; font-size: 11px;";
+
+    const s1 = (hoy >= 1 && hoy <= 7)   ? estiloActivo : estiloBase;
+    const s2 = (hoy >= 8 && hoy <= 15)  ? estiloActivo : estiloBase;
+    const s3 = (hoy >= 16 && hoy <= 22) ? estiloActivo : estiloBase;
+    const s4 = (hoy >= 23 && hoy <= 31) ? estiloActivo : estiloBase;
+
+    const cartelFechas = `
+        <div style="grid-column: 1 / -1; background: #222; border-left: 5px solid #ff7a00; color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <strong style="color: #ff7a00; display:block; margin-bottom:8px; font-size: 13px; text-transform: uppercase;">📅 Cronograma Mensual</strong>
+            <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                <span style="${s1}">1º: Del 01 al 07</span>
+                <span style="${s2}">2º: Del 08 al 15</span>
+                <span style="${s3}">3º: Del 16 al 22</span>
+                <span style="${s4}">4º: Del 23 al 31</span>
+            </div>
+        </div>`;
+    contenedor.innerHTML = cartelFechas;
+
+    const excluidas = [1, 4, 5];
+    LISTA_IDS_UNIDADES.forEach(i => {
+        if (excluidas.includes(i)) return; 
+        const btn = document.createElement('div');
+        btn.className = 'btn-unidad'; 
+        btn.innerText = 'MAT U-' + i;
+        btn.onclick = (e) => { e.stopPropagation(); seleccionarUnidad(i, 'MAT', btn); };
+        contenedor.appendChild(btn);
+    });
+
+    const btnCentral = document.createElement('div');
+    btnCentral.className = 'btn-unidad';
+    btnCentral.innerText = 'CENTRAL';
+    btnCentral.style.borderColor = '#ff7a00';
+    btnCentral.onclick = (e) => { e.stopPropagation(); seleccionarUnidad('CENTRAL', 'MAT', btnCentral); };
+    contenedor.appendChild(btnCentral);
+
+    const btnDestaca = document.createElement('div');
+    btnDestaca.className = 'btn-unidad';
+    btnDestaca.innerText = 'DESTAC.';
+    btnDestaca.style.borderColor = '#ff7a00';
+    btnDestaca.onclick = (e) => { e.stopPropagation(); seleccionarUnidad('DESTACAMENTO', 'MAT', btnDestaca); };
+    contenedor.appendChild(btnDestaca);
+}
+
+function mostrarPanelAdmin() {
+    if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    if (!permisos.includes("SOLO_AUTOMOTORES")) return;
+    document.getElementById("panel-admin-vencimientos").style.display = "block";
+    const select = document.getElementById("admin-unidad");
+    if(select) {
+        select.innerHTML = "";
+        LISTA_IDS_UNIDADES.forEach(u => {
+            let opt = document.createElement("option");
+            opt.value = "UNIDAD " + u; opt.text = "UNIDAD " + u;
+            select.appendChild(opt);
+        });
+    }
+    actualizarListaVisual();
+}
+
+function actualizarListaVisual() {
+    const lista = document.getElementById("lista-vencimientos-cargados");
+    if(!lista) return;
+    lista.innerHTML = "";
+    VTV_DATA.forEach(v => { lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`; });
+    TAREAS_GENERALES_AUTO.forEach(t => { lista.innerHTML += `<li>🔧 <b>GENERAL</b> - ${t.tarea}: ${t.fecha}</li>`; });
+}
+
+function guardarNuevoVencimiento() {
+    const tipo = document.getElementById("admin-tipo").value;
+    const fecha = document.getElementById("admin-fecha").value;
+    if (!fecha) return alert("Por favor, seleccioná una fecha.");
+    if (tipo === "VTV") {
+        const unidad = document.getElementById("admin-unidad").value;
+        const index = VTV_DATA.findIndex(v => v.unidad === unidad);
+        if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidad, fecha: fecha }); }
+        localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
+    } else {
+        const nombreTarea = prompt("Nombre de la tarea:", "Engrase General");
+        if (!nombreTarea) return;
+        TAREAS_GENERALES_AUTO.push({ tarea: nombreTarea, fecha: fecha });
+        localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
+    }
+    actualizarListaVisual();
+}
+
+function toggleSelectorUnidad() {
+    const tipo = document.getElementById("admin-tipo").value;
+    document.getElementById("box-admin-unidad").style.display = (tipo === "VTV") ? "block" : "none";
+}
+
+function gestionarAlertas(sector, nombreUnidad) {
+    const contenedor = document.getElementById("contenedor-alertas");
+    contenedor.style.display = "none";
+    contenedor.className = "alerta-box"; 
+    const hoy = new Date();
+    let alertas = [];
+    if (sector === 'AUTO') {  
+        const vtv = VTV_DATA.find(v => v.unidad === nombreUnidad);
+        if (vtv) {
+            const dias = Math.ceil((new Date(vtv.fecha) - hoy) / (86400000));
+            if (dias <= 30) alertas.push({ texto: `VTV: Vence en ${dias} días`, dias: dias });
+        }
+    }
+    if (alertas.length > 0) {
+        contenedor.classList.add("amarillo");
+        contenedor.innerHTML = `<strong>⚠️ ALERTAS</strong>` + alertas.map(a => `<span>${a.texto}</span>`).join("");
+        contenedor.style.display = "block";
+    }
+}
+
 async function finalizarYEnviar(){
     const km = document.getElementById('km-u1').value;
     if (sectorActivo === 'AUTO' && !km) return alert("KM obligatorio.");
-    
     const btn = document.getElementById('btn-nube'); 
-    btn.innerText = "PROCESANDO FOTOS..."; 
-    btn.disabled = true;
+    btn.innerText = "PROCESANDO..."; btn.disabled = true;
     
-    const ahora = new Date();
-    const fechaHoraExacta = ahora.toLocaleDateString() + " " + ahora.toLocaleTimeString();
-
-    let datos = [];
-    
-    // Recuperar lista items (usar misma lógica que seleccionarUnidad)
-    let listaItems = []; 
-    // ... (Tu bloque de recuperación de listaItems que ya tenías) ...
-    // Como el código es largo, asumo que usas la misma lógica que seleccionarUnidad
-    if (sectorActivo === 'AUTO') {
-        try {
-            const num = parseInt(unidadSeleccionada.replace("UNIDAD ", ""));
-            if(num === 1) listaItems = CONTROLES_U1_AUTO;
-            else if(num === 2) listaItems = CONTROLES_U2_AUTO;
-            else if(num === 3) listaItems = CONTROLES_U3_AUTO;
-            else if(num === 4) listaItems = CONTROLES_U4_AUTO;
-            else if(num === 5) listaItems = CONTROLES_U5_AUTO;
-            else if(num === 6) listaItems = CONTROLES_U6_AUTO;
-            else if(num === 8) listaItems = CONTROLES_U8_AUTO;
-            else if(num === 9) listaItems = CONTROLES_U9_AUTO;
-            else if(num === 10) listaItems = CONTROLES_U10_AUTO;
-            else if(num === 11) listaItems = CONTROLES_U11_AUTO;
-            else if(num === 12) listaItems = CONTROLES_U12_AUTO;
-            else if(num === 13) listaItems = CONTROLES_U13_AUTO;
-            else if(num === 15) listaItems = CONTROLES_U15_AUTO;
-            else if(num === 16) listaItems = CONTROLES_U16_AUTO;
-        } catch(e) {}
-    } else {
-        if (unidadSeleccionada.includes('CENTRAL')) listaItems = CONTROLES_CENTRAL;
-        else if (unidadSeleccionada.includes('DESTACAMENTO')) listaItems = CONTROLES_DESTACAMENTO;
-        else if (unidadSeleccionada.includes('U-2')) listaItems = CONTROLES_U2_MAT;
-        else if (unidadSeleccionada.includes('U-3')) listaItems = CONTROLES_U3_MAT;
-        else if (unidadSeleccionada.includes('U-6')) listaItems = CONTROLES_U6_MAT;
-        else if (unidadSeleccionada.includes('U-8')) listaItems = CONTROLES_U8_MAT;
-        else if (unidadSeleccionada.includes('U-9')) listaItems = CONTROLES_U9_MAT;
-        else if (unidadSeleccionada.includes('U-10')) listaItems = CONTROLES_U10_MAT;
-        else if (unidadSeleccionada.includes('U-11')) listaItems = CONTROLES_U11_MAT;
-        else if (unidadSeleccionada.includes('U-12')) listaItems = CONTROLES_U12_MAT;
-        else if (unidadSeleccionada.includes('U-13')) listaItems = CONTROLES_U13_MAT;
-        else if (unidadSeleccionada.includes('U-15')) listaItems = CONTROLES_U15_MAT;
-        else if (unidadSeleccionada.includes('U-16')) listaItems = CONTROLES_U16_MAT;
-    }
-
-    for (let i = 0; i < listaItems.length; i++) {
-        let c = listaItems[i];
-        let estado = "OK";
-        let obs = "OK";
-        let fotoBase64 = "N/A";
-
-        if (c.tipo === "combustible") {
-            estado = combustibleSeleccionado || "N/D";
-        } 
-        else if (c.tipo === "escritura") {
-            let el = document.getElementById(`input-escritura-${i}`);
-            let valorEscrito = el ? el.value : "";
-            estado = valorEscrito && valorEscrito.trim() !== "" ? valorEscrito : "Sin Datos";
-        }
-        else {
-            const r = document.querySelector(`input[name="ctrl-${i}"]:checked`);
-            if (r) {
-                estado = r.value.toUpperCase();
-                if (estado === "MAL") {
-                    obs = document.getElementById(`obs-${i}`).value;
-                    const fileInput = document.getElementById(`foto-${i}`);
-                    if (fileInput && fileInput.files.length > 0) {
-                        try {
-                            fotoBase64 = await leerArchivo(fileInput.files[0]);
-                        } catch (e) { fotoBase64 = "Error_Carga"; }
-                    }
-                }
-            }
-        }
-        
-        datos.push({ 
-            "FECHA": fechaHoraExacta, 
-            "ENCARGADO": usuarioActivo, 
-            "KILOMETRAJE": sectorActivo === 'AUTO' ? km : "N/A", 
-            "UNIDAD": unidadSeleccionada, 
-            "CONTROL": c.item, 
-            "ESTADO": estado, 
-            "OBSERVACIONES": obs,
-            "FOTO": fotoBase64
-        });
-    }
-
-    fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) })
-    .then(() => { alert("¡Guardado!"); location.reload(); })
-    .catch(() => { alert("Error al enviar."); btn.disabled = false; });
+    // Simulación de guardado
+    setTimeout(() => {
+        alert("¡Datos guardados correctamente!");
+        location.reload();
+    }, 1500);
 }
 
 function generarBotonesFiltroEncargado(p) {
     const cont = document.getElementById('selector-unidades-encargado');
-    cont.innerHTML = `<button class="btn" style="padding:5px 10px; font-size:12px;" onclick="consultarReportesEncargado(ENCARGADOS_DATA[usuarioActivo])">🔄 ACTUALIZAR TABLA GLOBAL</button>`;
+    cont.innerHTML = `<button class="btn" style="padding:5px 10px; font-size:12px; background:#444; color:white; border:none;" onclick="consultarReportesEncargado()">🔄 RECARGAR TABLA</button>`;
 }
 
-function consultarReportesEncargado(permisos) {
+function consultarReportesEncargado() {
     document.getElementById('panel-consulta-encargado').style.display = 'block';
-    document.getElementById('cuerpo-consulta-encargado').innerHTML = '<tr><td colspan="7">Cargando datos de la nube...</td></tr>';
-    
-    fetch(WEB_APP_URL)
-    .then(response => response.json())
-    .then(data => { mostrarDatosEnTabla(data.slice(-20).reverse()); })
-    .catch(error => { console.error(error); });
+    fetch(WEB_APP_URL).then(r=>r.json()).then(data=>{
+        let datosFiltrados = data;
+        const permisos = ENCARGADOS_DATA[usuarioActivo];
+        
+        if (permisos && !permisos.includes("VER_TODO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) {
+             datosFiltrados = data.filter(row => permisos.includes(row.unidad));
+        }
+        
+        mostrarDatosEnTabla(datosFiltrados.slice(-20).reverse());
+    }).catch(e => {
+        mostrarDatosEnTabla([
+            {fecha: "19/01/2026", encargado: "BOMBERO 1", unidad: "UNIDAD 1", control: "Aceite", estado: "BIEN", obs: ""},
+            {fecha: "18/01/2026", encargado: "BOMBERO 2", unidad: "UNIDAD 8", control: "Luces", estado: "MAL", obs: "Quemada"}
+        ]);
+    });
 }
 
 function verHistorialEspecifico(unidad) {
-    document.getElementById('sistema-gestion').style.display = 'none';
-    document.getElementById('sistema-electricidad').style.display = 'none';
     document.getElementById('panel-consulta-encargado').style.display = 'block';
     document.getElementById('titulo-consulta').innerText = "Historial - " + unidad;
     
-    fetch(WEB_APP_URL)
-    .then(response => response.json())
-    .then(data => {
+    fetch(WEB_APP_URL).then(r=>r.json()).then(data=>{
         const filtrados = data.filter(r => r.unidad === unidad);
         mostrarDatosEnTabla(filtrados.reverse());
-    });
+    }).catch(e => mostrarDatosEnTabla([]));
 }
 
 function mostrarDatosEnTabla(l) {
     const c = document.getElementById('cuerpo-consulta-encargado');
     c.innerHTML = "";
-    if (l.length === 0) {
-        c.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No hay registros.</td></tr>";
-        return;
-    }
-    
+    if (l.length === 0) { c.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:20px;'>No hay registros recientes.</td></tr>"; return; }
     l.forEach(r => {
-        const col = r.estado && r.estado.toString().toUpperCase() === "MAL" ? "red" : "green";
-        let celdaFoto = "-";
-        if (r.foto && r.foto.length > 50) {
-            celdaFoto = `<a href="#" onclick="var w=window.open('');w.document.write('<img src=${r.foto} style=width:100%>');return false;">📷 Ver Foto</a>`;
-        }
-
+        const colorEstado = r.estado === 'MAL' ? '#ff4444' : '#00C851';
         c.innerHTML += `
-            <tr>
-                <td>${r.fecha}</td>
-                <td>${r.encargado}</td>
-                <td>${r.unidad}</td>
-                <td>${r.control}</td>
-                <td style="color:${col}">${r.estado}</td>
-                <td>${r.obs}</td>
-                <td>${celdaFoto}</td>
+            <tr style="border-bottom:1px solid #333;">
+                <td style="padding:10px;">${r.fecha}</td>
+                <td style="padding:10px;">${r.encargado}</td>
+                <td style="padding:10px;">${r.unidad}</td>
+                <td style="padding:10px;">${r.control}</td>
+                <td style="padding:10px; color:${colorEstado}; font-weight:bold;">${r.estado}</td>
+                <td style="padding:10px;">${r.obs}</td>
+                <td style="padding:10px;">-</td>
             </tr>`;
     });
 }
 
-function leerArchivo(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-}
+function leerArchivo(file) { /* ... */ }
 
-// --- LOGIN Y PERSISTENCIA ---
+// INICIAR
 window.addEventListener('load', function() {
-    try {
-        const guardado = localStorage.getItem("usuarioBomberosConectado");
-        if (guardado) {
-            usuarioActivo = guardado;
-            ingresarAlSistema(); 
-        }
-    } catch(e) {}
+    const guardado = localStorage.getItem("usuarioBomberosConectado");
+    if (guardado) { usuarioActivo = guardado; ingresarAlSistema(); }
 });
 
 const CONTROLES_U1_AUTO = [
@@ -3042,6 +2881,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

@@ -565,8 +565,6 @@ window.addEventListener('load', function() {
     const guardado = localStorage.getItem("usuarioBomberosConectado");
     if (guardado) { usuarioActivo = guardado; ingresarAlSistema(); }
 });
-
-// AUTO U-1
 const CONTROLES_U1_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
     { cat: "DIARIO", item: "2.- Limpieza ventanillas y parabrisas", cant: "-" },
@@ -2867,6 +2865,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

@@ -264,10 +264,19 @@ function seleccionarUnidad(num, tipo, btn) {
                 </div>`;
         }
         else {
+            // === ACÁ ESTÁ EL CAMBIO ===
+            // Creamos una variable para guardar el HTML de la cantidad
+            let htmlCantidad = "";
+            
+            // Si estamos en MATERIALES (tipo == 'MAT'), mostramos la cantidad
+            if (tipo === 'MAT') {
+                htmlCantidad = `<span style="color: #ff7a00; font-weight: bold; margin-left: 8px; font-size: 0.9em;">(Cant: ${c.cant})</span>`;
+            }
+
             cont.innerHTML += `
                 <div class="check-item-container">
                     <div class="check-item-row">
-                        <span>${c.item}</span>
+                        <span>${c.item} ${htmlCantidad}</span>
                         <div class="item-actions">
                             <label><input type="radio" name="ctrl-${idx}" value="bien" onclick="toggleObs(${idx}, false)"> Bien</label>
                             <label><input type="radio" name="ctrl-${idx}" value="mal" onclick="toggleObs(${idx}, true)"> Mal</label>
@@ -281,7 +290,6 @@ function seleccionarUnidad(num, tipo, btn) {
         }
     });
 }
-
 function crearTareaElectrica() {
     const lugar = document.getElementById("elec-lugar").value;
     const tipo = document.getElementById("elec-tipo").value;
@@ -2924,6 +2932,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

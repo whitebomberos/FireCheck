@@ -967,8 +967,6 @@ const CONTROLES_U8_AUTO = [
     { cat: "CONTROL DE BOMBA", item: "10.- Acople de la bomba de vacío", cant: "-" },
     { cat: "CONTROL DE BOMBA", item: "11.- Prueba de expulsiones", cant: "-" }];
 
-
-    
 const CONTROLES_U10_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
     { cat: "DIARIO", item: "2.- Limpieza ventanillas, parabrisas y espejos", cant: "-" },
@@ -1012,8 +1010,6 @@ const CONTROLES_U10_AUTO = [
     { cat: "CONTROL DE BOMBA", item: "7.- Prueba de expulsiones", cant: "-" },
     { cat: "CONTROL DE BOMBA", item: "8.- Luces bombas", cant: "-" },];
 
-
-    
 const CONTROLES_U11_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
     { cat: "DIARIO", item: "2.- Limpieza ventanillas, parabrisas y espejos", cant: "-" },
@@ -1051,8 +1047,6 @@ const CONTROLES_U11_AUTO = [
     { cat: "CONTROLES SEMESTRALES", item: "1.- Engrase", cant: "-" },
     { cat: "CONTROLES SEMESTRALES", item: "2.- Encerar unidad", cant: "-" },]
 
-
-    
 const CONTROLES_U12_AUTO = [
     { cat: "INSPECCIÓN GENERAL", item: "1.- Limpieza interior de cabina", cant: "-" },
     { cat: "INSPECCIÓN GENERAL", item: "2.- Limpieza ventanillas, parabrisas y espejos", cant: "-" },
@@ -1165,8 +1159,7 @@ const CONTROLES_U12_AUTO = [
     { cat: "CONTROL DE BOMBA", item: "13.- Prueba de expulsiones", cant: "-" },
     { cat: "CONTROL DE BOMBA", item: "14.- Funcionamiento monitor", cant: "-" }];
 
-
-    const CONTROLES_U15_AUTO = [
+const CONTROLES_U15_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
     { cat: "DIARIO", item: "2.- Limpieza ventanillas, parabrisas y espejos", cant: "-" },
     { cat: "DIARIO", item: "3.- Puesta en marcha", cant: "-" },
@@ -1209,9 +1202,6 @@ const CONTROLES_U12_AUTO = [
     { cat: "CONTROL DE BOMBA", item: "6.- Funcionamiento", cant: "-" },
     { cat: "CONTROL DE BOMBA", item: "7.- Prueba de expulsiones", cant: "-" },
     { cat: "CONTROL DE BOMBA", item: "8.- Luces bombas", cant: "-" },];
-
-
-
 
     const CONTROLES_U16_AUTO = [
     { cat: "INSPECCIÓN GENERAL", item: "1.- Limpieza interior de cabina", cant: "-" },
@@ -1826,35 +1816,35 @@ const CONTROLES_U9_MAT = [{ "cat": "PRIMER PERSIANA LADO CHOFER", "item": "Coman
 { "cat": "HOLMATRO", "item": "Mantenimiento general", "cant": "N/A" },
 { "cat": "HOLMATRO", "item": "Limpieza", "cant": "N/A" },
 { "cat": "EXPANSOR", "item": "Perdidas", "cant": "N/A" },
-{ "cat": " EXPANSOR", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": " EXPANSOR ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": " EXPANSOR ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": " EXPANSOR ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": " EXPANSOR ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "EXPANSOR", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": "EXPANSOR ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": "EXPANSOR ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": "EXPANSOR ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": "EXPANSOR ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "CIZALLA GRANDE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": " CIZALLA GRANDE", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": " CIZALLA GRANDE",  "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": " CIZALLA GRANDE", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": " CIZALLA GRANDE", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": " CIZALLA GRANDE", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "CIZALLA GRANDE", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": "CIZALLA GRANDE",  "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": "CIZALLA GRANDE", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": "CIZALLA GRANDE", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": "CIZALLA GRANDE", "item": "Limpieza", "cant": "N/A" },
 { "cat": "MULTIPROPOSITO", "item": "Perdidas", "cant": "N/A" },
-{ "cat": " MULTIPROPOSITO", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": " MULTIPROPOSITO ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": " MULTIPROPOSITO ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": " MULTIPROPOSITO ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": " MULTIPROPOSITO ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "MULTIPROPOSITO", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": "MULTIPROPOSITO ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": "MULTIPROPOSITO ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": "MULTIPROPOSITO ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": "MULTIPROPOSITO ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "RAM DOBLE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": " RAM DOBLE ", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": " RAM DOBLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": " RAM DOBLE ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": " RAM DOBLE ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": " RAM DOBLE ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "RAM DOBLE ", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": "RAM DOBLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": "RAM DOBLE ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": "RAM DOBLE ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": "RAM DOBLE ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "RAM SIMPLE", "item": "Perdidas", "cant": "N/A" },
-{ "cat": " RAM SIMPLE ", "item": "Estado de acoples", "cant": "N/A" },
-{ "cat": " RAM SIMPLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
-{ "cat": " RAM SIMPLE ", "item": "Apertura y cierre total", "cant": "N/A" },
-{ "cat": " RAM SIMPLE ", "item": "Mantenimiento general", "cant": "N/A" },
-{ "cat": " RAM SIMPLE ", "item": "Limpieza", "cant": "N/A" },
+{ "cat": "RAM SIMPLE ", "item": "Estado de acoples", "cant": "N/A" },
+{ "cat": "RAM SIMPLE ", "item": "Estado de cierre y apertura", "cant": "N/A" },
+{ "cat": "RAM SIMPLE ", "item": "Apertura y cierre total", "cant": "N/A" },
+{ "cat": "RAM SIMPLE ", "item": "Mantenimiento general", "cant": "N/A" },
+{ "cat": "RAM SIMPLE ", "item": "Limpieza", "cant": "N/A" },
 { "cat": "AMOLADORA", "item": "Mantenimiento general", "cant": "N/A" },
 { "cat": "AMOLADORA", "item": "Puesta en marcha", "cant": "N/A" },
 { "cat": "AMOLADORA", "item": "Disco y llave", "cant": "N/A" },
@@ -2934,6 +2924,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

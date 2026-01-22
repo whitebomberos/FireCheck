@@ -17,17 +17,9 @@ const ENCARGADOS_DATA = {
     "MARA CASTILLO": ["SOLO_MATERIALES"], 
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
 
-    // SUPER USUARIOS
-    "CRISTIAN BALEY": ["SUPER_USUARIO"],
+    // SUPER USUARIO
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
-    "MARCO ALFARO": ["SUPER_USUARIO"],   
-    "MARCOS ALFARO": ["SUPER_USUARIO"],  
-    "ROLANDO AVERSANO": ["SUPER_USUARIO"],
-    "NELSON CECI": ["SUPER_USUARIO"],
-    "ROLANDO MISHEVITCH": ["SUPER_USUARIO"],
-    "CESAR MENDIONDO": ["SUPER_USUARIO"],
-    "NORBERTO COLACCE": ["SUPER_USUARIO"],
-    
+        
     // ELECTRICIDAD
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
 };
@@ -547,20 +539,42 @@ function generarBotonesFiltroEncargado(p) {
 }
 
 function consultarReportesEncargado() {
+    // Muestra el panel
     document.getElementById('panel-consulta-encargado').style.display = 'block';
-    fetch(WEB_APP_URL).then(r=>r.json()).then(data=>{
+    
+    // Pide los datos a la hoja de cálculo
+    fetch(WEB_APP_URL).then(r => r.json()).then(data => {
         let datosFiltrados = data;
         const permisos = ENCARGADOS_DATA[usuarioActivo];
-        
+
+        // 1. FILTRO DE USUARIO: Si no es Super Usuario, filtrar lo que le toca
         if (permisos && !permisos.includes("VER_TODO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) {
-             datosFiltrados = data.filter(row => permisos.includes(row.unidad));
+            datosFiltrados = data.filter(row => permisos.includes(row.unidad));
         }
-        
-        mostrarDatosEnTabla(datosFiltrados.slice(-20).reverse());
+
+        // 2. FILTRO DE FECHA: SOLO LOS ÚLTIMOS 30 DÍAS (MES ACTUAL)
+        const fechaLimite = new Date();
+        fechaLimite.setDate(fechaLimite.getDate() - 30); // Restamos 30 días a hoy
+
+        datosFiltrados = datosFiltrados.filter(row => {
+            if (!row.fecha) return false;
+            // Convertimos la fecha del registro (DD/MM/YYYY) a objeto fecha real
+            const partes = row.fecha.split('/'); // separa dia, mes y año
+            // Ojo: en Javascript los meses van de 0 a 11, por eso restamos 1 al mes
+            const fechaFila = new Date(partes[2], partes[1] - 1, partes[0]);
+            
+            // Si la fecha del control es mayor (más nueva) que el límite, pasa el filtro
+            return fechaFila >= fechaLimite;
+        });
+
+        // Mostramos los datos filtrados (invertimos para que el más nuevo quede arriba)
+        mostrarDatosEnTabla(datosFiltrados.reverse());
+
     }).catch(e => {
+        console.error(e);
+        // Datos de prueba por si falla la conexión
         mostrarDatosEnTabla([
-            {fecha: "19/01/2026", encargado: "BOMBERO 1", unidad: "UNIDAD 1", control: "Aceite", estado: "BIEN", obs: ""},
-            {fecha: "18/01/2026", encargado: "BOMBERO 2", unidad: "UNIDAD 8", control: "Luces", estado: "MAL", obs: "Quemada"}
+            { fecha: "Error", encargado: "-", unidad: "-", control: "Sin conexión", estado: "-", obs: "No se pudo cargar la data" }
         ]);
     });
 }
@@ -2920,6 +2934,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

@@ -164,23 +164,25 @@ function entrarElectricidad() {
 // =========================================================
 //  3. LÓGICA DE SELECCIÓN Y FORMULARIOS
 // =========================================================
-
 function seleccionarUnidad(num, tipo, btn) {
     sectorActivo = tipo;
     
+    // Configuración del nombre de la unidad seleccionada
     if (num === 'CENTRAL') unidadSeleccionada = "MAT CENTRAL";
     else if (num === 'DESTACAMENTO') unidadSeleccionada = "MAT DESTACAMENTO";
     else unidadSeleccionada = tipo === 'AUTO' ? "UNIDAD " + num : "MAT U-" + num;
 
+    // Manejo visual de los botones (activo/inactivo)
     document.querySelectorAll('.btn-unidad').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    // --- REDIRECCIÓN ENCARGADOS ---
+    // --- REDIRECCIÓN ENCARGADOS (Lógica de permisos) ---
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     const esSuper = permisos?.includes("SUPER_USUARIO");
     const esJefeAuto = permisos?.includes("SOLO_AUTOMOTORES") || permisos?.includes("VER_TODO_AUTOMOTORES");
     const esJefeMat = permisos?.includes("SOLO_MATERIALES");
 
+    // Si es jefe o superusuario, lo manda directo al historial
     if (esSuper || (tipo === 'AUTO' && esJefeAuto) || (tipo === 'MAT' && esJefeMat)) {
         document.getElementById('sistema-gestion').style.display = 'none'; 
         verHistorialEspecifico(unidadSeleccionada);
@@ -189,11 +191,13 @@ function seleccionarUnidad(num, tipo, btn) {
 
     // --- CARGA DE CHECKLIST PARA BOMBEROS ---
     const cont = document.getElementById('campos-control');
-    cont.innerHTML = "";
+    cont.innerHTML = ""; // Limpiar lista anterior
     document.getElementById('btn-nube').style.display = 'block';
     document.getElementById('titulo-control').innerText = unidadSeleccionada;
+    // El odómetro solo se muestra en autos
     document.getElementById('contenedor-km').style.display = tipo === 'AUTO' ? 'block' : 'none';
 
+    // Selección de la lista de items correcta según la unidad
     let listaItems = [];
     if (sectorActivo === 'AUTO') {
         try {
@@ -233,12 +237,15 @@ function seleccionarUnidad(num, tipo, btn) {
     gestionarAlertas(tipo, unidadSeleccionada);
 
     let currentCat = "";
+    // BUCLE PARA GENERAR CADA ITEM EN PANTALLA
     listaItems.forEach((c, idx) => {
+        // Títulos de Categoría
         if (c.cat && c.cat !== currentCat) {
             currentCat = c.cat;
             cont.innerHTML += `<h3 style="color:#b11217; margin: 25px 0 10px 0; border-bottom: 2px solid #333; padding-bottom:5px;">${currentCat}</h3>`;
         }
         
+        // Item tipo Combustible (Medidor)
         if (c.tipo === "combustible") {
              cont.innerHTML += `
                 <div class="check-item-container">
@@ -254,6 +261,7 @@ function seleccionarUnidad(num, tipo, btn) {
                     </div>
                 </div>`;
         } 
+        // Item tipo Escritura (Input de texto)
         else if (c.tipo === "escritura") {
              cont.innerHTML += `
                 <div class="check-item-container" style="border-left-color: #27ae60;">
@@ -263,20 +271,23 @@ function seleccionarUnidad(num, tipo, btn) {
                     </div>
                 </div>`;
         }
+        // Item Normal (Bien/Mal)
         else {
-            // === ACÁ ESTÁ EL CAMBIO ===
-            // Creamos una variable para guardar el HTML de la cantidad
-            let htmlCantidad = "";
-            
-            // Si estamos en MATERIALES (tipo == 'MAT'), mostramos la cantidad
-            if (tipo === 'MAT') {
-                htmlCantidad = `<span style="color: #ff7a00; font-weight: bold; margin-left: 8px; font-size: 0.9em;">(Cant: ${c.cant})</span>`;
+            // ========================================================
+            // AQUÍ ESTÁ EL CAMBIO PARA MOSTRAR LA CANTIDAD
+            // ========================================================
+            let mostrarCantidad = "";
+
+            // Solo si es MATERIALES ('MAT'), leemos la propiedad "cant" y la mostramos
+            if (tipo === 'MAT' && c.cant) {
+                mostrarCantidad = `<span style="color: #ff7a00; font-weight: bold; margin-left: 10px; font-size: 0.95em;">(Cant: ${c.cant})</span>`;
             }
 
             cont.innerHTML += `
                 <div class="check-item-container">
                     <div class="check-item-row">
-                        <span>${c.item} ${htmlCantidad}</span>
+                        <span>${c.item} ${mostrarCantidad}</span>
+                        
                         <div class="item-actions">
                             <label><input type="radio" name="ctrl-${idx}" value="bien" onclick="toggleObs(${idx}, false)"> Bien</label>
                             <label><input type="radio" name="ctrl-${idx}" value="mal" onclick="toggleObs(${idx}, true)"> Mal</label>
@@ -2932,6 +2943,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

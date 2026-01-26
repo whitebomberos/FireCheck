@@ -18,11 +18,9 @@ const ENCARGADOS_DATA = {
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
 
     // SUPER USUARIO
-    const ENCARGADOS_DATA = {
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
     "CRISTIAN BALEY": ["SOLO_MATERIALES"],
     "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"]
-};
         
     // ELECTRICIDAD
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
@@ -2972,6 +2970,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

@@ -5,7 +5,7 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhIS
 
 // --- PERMISOS ---
 const ENCARGADOS_DATA = {
-    // AUTOMOTORES
+    // AUTOMOTORES (Ven sus unidades asignadas)
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
     "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
     "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
@@ -14,10 +14,10 @@ const ENCARGADOS_DATA = {
     // MATERIALES
     "MAURO MARTINEZ": ["SOLO_MATERIALES"], 
     "CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
-    "MARA CASTILLO": ["SOLO_MATERIALES"], 
+    "MARA CASTILLO": ["SOLO_MATERIALES"], // Ella tiene una excepción en el paso 2 para poder cargar
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
 
-    // SUPER USUARIOS Y ENCARGADOS
+    // SUPER USUARIO Y JEFES DE AREA (Con restricción de 30 días)
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
     "CRISTIAN BALEY": ["SOLO_MATERIALES"],
     "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"],
@@ -166,41 +166,43 @@ function entrarElectricidad() {
 // =========================================================
 //  3. LÓGICA DE SELECCIÓN Y FORMULARIOS
 // =========================================================
+
 function seleccionarUnidad(num, tipo, btn) {
     sectorActivo = tipo;
     
-    // Configuración del nombre de la unidad seleccionada
     if (num === 'CENTRAL') unidadSeleccionada = "MAT CENTRAL";
     else if (num === 'DESTACAMENTO') unidadSeleccionada = "MAT DESTACAMENTO";
     else unidadSeleccionada = tipo === 'AUTO' ? "UNIDAD " + num : "MAT U-" + num;
 
-    // Manejo visual de los botones (activo/inactivo)
     document.querySelectorAll('.btn-unidad').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    // --- REDIRECCIÓN ENCARGADOS (Lógica de permisos) ---
+    // --- REDIRECCIÓN ENCARGADOS ---
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     const esSuper = permisos?.includes("SUPER_USUARIO");
     const esJefeAuto = permisos?.includes("SOLO_AUTOMOTORES") || permisos?.includes("VER_TODO_AUTOMOTORES");
     const esJefeMat = permisos?.includes("SOLO_MATERIALES");
 
-    // Si es jefe o superusuario, lo manda directo al historial
-    if (esSuper || (tipo === 'AUTO' && esJefeAuto) || (tipo === 'MAT' && esJefeMat)) {
-        document.getElementById('sistema-gestion').style.display = 'none'; 
-        verHistorialEspecifico(unidadSeleccionada);
-        return; 
+    // EXCEPCIÓN: Si es Mara Castillo, NO la redirigimos al historial, dejamos que cargue control.
+    // Para el resto de encargados, si tocan su área, van a ver historial.
+    if (usuarioActivo !== "MARA CASTILLO") {
+        if (esSuper || (tipo === 'AUTO' && esJefeAuto) || (tipo === 'MAT' && esJefeMat)) {
+            document.getElementById('sistema-gestion').style.display = 'none'; 
+            verHistorialEspecifico(unidadSeleccionada);
+            return; 
+        }
     }
 
-    // --- CARGA DE CHECKLIST PARA BOMBEROS ---
+    // --- CARGA DE CHECKLIST ---
     const cont = document.getElementById('campos-control');
-    cont.innerHTML = ""; // Limpiar lista anterior
+    cont.innerHTML = "";
     document.getElementById('btn-nube').style.display = 'block';
     document.getElementById('titulo-control').innerText = unidadSeleccionada;
-    // El odómetro solo se muestra en autos
     document.getElementById('contenedor-km').style.display = tipo === 'AUTO' ? 'block' : 'none';
 
-    // Selección de la lista de items correcta según la unidad
     let listaItems = [];
+    // (Aquí va la lógica de selección de listas, la dejo abreviada porque ya la tienes bien en tu código, 
+    // pero asegúrate de que esta parte busque las listas CONTROLES_U1_AUTO, etc.)
     if (sectorActivo === 'AUTO') {
         try {
             if(num === 1) listaItems = CONTROLES_U1_AUTO;
@@ -239,15 +241,12 @@ function seleccionarUnidad(num, tipo, btn) {
     gestionarAlertas(tipo, unidadSeleccionada);
 
     let currentCat = "";
-    // BUCLE PARA GENERAR CADA ITEM EN PANTALLA
     listaItems.forEach((c, idx) => {
-        // Títulos de Categoría
         if (c.cat && c.cat !== currentCat) {
             currentCat = c.cat;
             cont.innerHTML += `<h3 style="color:#b11217; margin: 25px 0 10px 0; border-bottom: 2px solid #333; padding-bottom:5px;">${currentCat}</h3>`;
         }
         
-        // Item tipo Combustible (Medidor)
         if (c.tipo === "combustible") {
              cont.innerHTML += `
                 <div class="check-item-container">
@@ -263,7 +262,6 @@ function seleccionarUnidad(num, tipo, btn) {
                     </div>
                 </div>`;
         } 
-        // Item tipo Escritura (Input de texto)
         else if (c.tipo === "escritura") {
              cont.innerHTML += `
                 <div class="check-item-container" style="border-left-color: #27ae60;">
@@ -273,14 +271,9 @@ function seleccionarUnidad(num, tipo, btn) {
                     </div>
                 </div>`;
         }
-        // Item Normal (Bien/Mal)
         else {
-            // ========================================================
-            // AQUÍ ESTÁ EL CAMBIO PARA MOSTRAR LA CANTIDAD
-            // ========================================================
+            // Muestra CANTIDAD solo si es MATERIALES
             let mostrarCantidad = "";
-
-            // Solo si es MATERIALES ('MAT'), leemos la propiedad "cant" y la mostramos
             if (tipo === 'MAT' && c.cant) {
                 mostrarCantidad = `<span style="color: #ff7a00; font-weight: bold; margin-left: 10px; font-size: 0.95em;">(Cant: ${c.cant})</span>`;
             }
@@ -289,7 +282,6 @@ function seleccionarUnidad(num, tipo, btn) {
                 <div class="check-item-container">
                     <div class="check-item-row">
                         <span>${c.item} ${mostrarCantidad}</span>
-                        
                         <div class="item-actions">
                             <label><input type="radio" name="ctrl-${idx}" value="bien" onclick="toggleObs(${idx}, false)"> Bien</label>
                             <label><input type="radio" name="ctrl-${idx}" value="mal" onclick="toggleObs(${idx}, true)"> Mal</label>
@@ -303,6 +295,7 @@ function seleccionarUnidad(num, tipo, btn) {
         }
     });
 }
+
 function crearTareaElectrica() {
     const lugar = document.getElementById("elec-lugar").value;
     const tipo = document.getElementById("elec-tipo").value;
@@ -591,31 +584,47 @@ function consultarReportesEncargado() {
         let datosFiltrados = data;
         const permisos = ENCARGADOS_DATA[usuarioActivo];
 
-        // --- 1. FILTRO DE ÁREA (Quién puede ver qué) ---
+        // --- 1. FILTRO DE QUÉ PUEDEN VER (SEGURIDAD ESTRICTA) ---
         if (permisos) {
-            if (permisos.includes("SOLO_MATERIALES")) {
-                // Cristian: Solo ve unidades que digan "MAT" (Materiales)
-                datosFiltrados = data.filter(row => row.unidad && row.unidad.includes("MAT"));
+            // A. Si es de AUTOMOTORES (y no es Super Usuario)
+            if (permisos.includes("SOLO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) {
+                if (permisos.includes("VER_TODO_AUTOMOTORES")) {
+                    // Ve todas las unidades pero NO materiales
+                    datosFiltrados = data.filter(row => row.unidad && row.unidad.startsWith("UNIDAD"));
+                } else {
+                    // Ve SOLO sus unidades asignadas
+                    datosFiltrados = data.filter(row => permisos.includes(row.unidad));
+                }
             } 
-            else if (permisos.includes("SUBOFICIAL_ELECTRICIDAD")) {
-                // Marcos: Ve todo (Autos y Materiales) porque puede haber fallas eléctricas en ambos,
-                // pero si quisieras restringirlo solo a Autos, descomenta la línea de abajo:
-                // datosFiltrados = data.filter(row => row.unidad && row.unidad.includes("UNIDAD"));
+            // B. Si es de MATERIALES (y no es Super Usuario)
+            else if (permisos.includes("SOLO_MATERIALES") && !permisos.includes("SUPER_USUARIO")) {
+                // Solo ve unidades que digan "MAT"
+                datosFiltrados = data.filter(row => row.unidad && row.unidad.includes("MAT"));
             }
-            // Daniel (Super Usuario) ve todo por defecto, así que no filtramos nada aquí.
+            // C. Si es de ELECTRICIDAD
+            else if (permisos.includes("SUBOFICIAL_ELECTRICIDAD") && !permisos.includes("SUPER_USUARIO")) {
+                 // Electricidad maneja sus datos en local, pero si hay datos en la nube, filtramos
+                 // para que NO vea ni automotores ni materiales generales si no corresponde.
+                 // (Si no guardan en la nube, esta lista saldrá vacía, lo cual es correcto).
+                 datosFiltrados = []; 
+            }
         }
 
-        // --- 2. FILTRO DE FECHA (Para TODOS: solo últimos 30 días) ---
-        const fechaLimite = new Date();
-        fechaLimite.setDate(fechaLimite.getDate() - 30); 
+        // --- 2. FILTRO DE 30 DÍAS (SOLO PARA DANIEL, CRISTIAN B. y MARCOS) ---
+        // Verificamos si el usuario actual es uno de los 3 restringidos
+        const usuariosRestringidos = ["DANIEL FARINACCIO", "CRISTIAN BALEY", "MARCOS ALFARO"];
+        
+        if (usuariosRestringidos.includes(usuarioActivo)) {
+            const fechaLimite = new Date();
+            fechaLimite.setDate(fechaLimite.getDate() - 30); 
 
-        datosFiltrados = datosFiltrados.filter(row => {
-            if (!row.fecha) return false;
-            const partes = row.fecha.split('/'); // DD/MM/AAAA
-            const fechaFila = new Date(partes[2], partes[1] - 1, partes[0]);
-            
-            return fechaFila >= fechaLimite;
-        });
+            datosFiltrados = datosFiltrados.filter(row => {
+                if (!row.fecha) return false;
+                const partes = row.fecha.split('/'); 
+                const fechaFila = new Date(partes[2], partes[1] - 1, partes[0]);
+                return fechaFila >= fechaLimite;
+            });
+        }
 
         mostrarDatosEnTabla(datosFiltrados.reverse());
 
@@ -626,6 +635,7 @@ function consultarReportesEncargado() {
         ]);
     });
 }
+
 function verHistorialEspecifico(unidad) {
     document.getElementById('panel-consulta-encargado').style.display = 'block';
     document.getElementById('titulo-consulta').innerText = "Historial - " + unidad;
@@ -2971,6 +2981,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

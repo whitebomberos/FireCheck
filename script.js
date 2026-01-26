@@ -478,7 +478,10 @@ function generarGrillaMateriales() {
 function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
     const permisos = ENCARGADOS_DATA[usuarioActivo];
-    if (!permisos.includes("SOLO_AUTOMOTORES")) return;
+    
+    // Ahora permite entrar si es encargado de automotores O Super Usuario
+    if (!permisos.includes("SOLO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) return;
+    
     document.getElementById("panel-admin-vencimientos").style.display = "block";
     const select = document.getElementById("admin-unidad");
     if(select) {
@@ -492,32 +495,53 @@ function mostrarPanelAdmin() {
     actualizarListaVisual();
 }
 
-function actualizarListaVisual() {
-    const lista = document.getElementById("lista-vencimientos-cargados");
-    if(!lista) return;
-    lista.innerHTML = "";
-    VTV_DATA.forEach(v => { lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`; });
-    TAREAS_GENERALES_AUTO.forEach(t => { lista.innerHTML += `<li>🔧 <b>GENERAL</b> - ${t.tarea}: ${t.fecha}</li>`; });
-}
-
 function guardarNuevoVencimiento() {
     const tipo = document.getElementById("admin-tipo").value;
     const fecha = document.getElementById("admin-fecha").value;
+    
     if (!fecha) return alert("Por favor, seleccioná una fecha.");
+    
     if (tipo === "VTV") {
         const unidad = document.getElementById("admin-unidad").value;
         const index = VTV_DATA.findIndex(v => v.unidad === unidad);
         if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidad, fecha: fecha }); }
         localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
     } else {
-        const nombreTarea = prompt("Nombre de la tarea:", "Engrase General");
+        // AQUÍ ESTÁ EL CAMBIO: Se piden dos cosas ahora
+        const nombreTarea = prompt("Título de la tarea (ej: Reparación de Luces):");
         if (!nombreTarea) return;
-        TAREAS_GENERALES_AUTO.push({ tarea: nombreTarea, fecha: fecha });
+        
+        // Apartado para escribir la instrucción al bombero
+        const instruccion = prompt("Escribí la instrucción para el bombero (¿Qué debe hacer?):", "Revisar y reparar");
+        
+        TAREAS_GENERALES_AUTO.push({ 
+            tarea: nombreTarea, 
+            instruccion: instruccion || "Sin detalles", // Guardamos la instrucción
+            fecha: fecha 
+        });
         localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
     }
     actualizarListaVisual();
 }
 
+function actualizarListaVisual() {
+    const lista = document.getElementById("lista-vencimientos-cargados");
+    if(!lista) return;
+    lista.innerHTML = "";
+    
+    VTV_DATA.forEach(v => { 
+        lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`; 
+    });
+    
+    TAREAS_GENERALES_AUTO.forEach(t => { 
+        // AQUÍ MOSTRAMOS LA INSTRUCCIÓN QUE ESCRIBIÓ EL SUBOFICIAL
+        lista.innerHTML += `
+            <li style="margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                🔧 <b>${t.tarea}</b> <span style="font-size:0.8em; color:#aaa;">(${t.fecha})</span><br>
+                <span style="color: #ff7a00; font-style: italic;">📝 Instrucción: ${t.instruccion || '-'}</span>
+            </li>`; 
+    });
+}
 function toggleSelectorUnidad() {
     const tipo = document.getElementById("admin-tipo").value;
     document.getElementById("box-admin-unidad").style.display = (tipo === "VTV") ? "block" : "none";
@@ -2948,6 +2972,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

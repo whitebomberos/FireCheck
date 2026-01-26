@@ -4,6 +4,7 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
 // --- PERMISOS ---
+// --- PERMISOS ---
 const ENCARGADOS_DATA = {
     // AUTOMOTORES
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
@@ -17,15 +18,14 @@ const ENCARGADOS_DATA = {
     "MARA CASTILLO": ["SOLO_MATERIALES"], 
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
 
-    // SUPER USUARIO
+    // SUPER USUARIOS Y NUEVOS AGREGADOS
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
     "CRISTIAN BALEY": ["SOLO_MATERIALES"],
-    "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"]
+    "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"],
         
     // ELECTRICIDAD
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
 };
-
 const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
 
 // VARIABLES
@@ -2970,6 +2970,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

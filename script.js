@@ -18,7 +18,11 @@ const ENCARGADOS_DATA = {
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
 
     // SUPER USUARIO
+    const ENCARGADOS_DATA = {
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
+    "CRISTIAN BALEY": ["SOLO_MATERIALES"],
+    "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"]
+};
         
     // ELECTRICIDAD
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
@@ -558,46 +562,47 @@ function generarBotonesFiltroEncargado(p) {
 }
 
 function consultarReportesEncargado() {
-    // Muestra el panel
     document.getElementById('panel-consulta-encargado').style.display = 'block';
     
-    // Pide los datos a la hoja de cálculo
     fetch(WEB_APP_URL).then(r => r.json()).then(data => {
         let datosFiltrados = data;
         const permisos = ENCARGADOS_DATA[usuarioActivo];
 
-        // 1. FILTRO DE USUARIO: Si no es Super Usuario, filtrar lo que le toca
-        if (permisos && !permisos.includes("VER_TODO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) {
-            datosFiltrados = data.filter(row => permisos.includes(row.unidad));
+        // --- 1. FILTRO DE ÁREA (Quién puede ver qué) ---
+        if (permisos) {
+            if (permisos.includes("SOLO_MATERIALES")) {
+                // Cristian: Solo ve unidades que digan "MAT" (Materiales)
+                datosFiltrados = data.filter(row => row.unidad && row.unidad.includes("MAT"));
+            } 
+            else if (permisos.includes("SUBOFICIAL_ELECTRICIDAD")) {
+                // Marcos: Ve todo (Autos y Materiales) porque puede haber fallas eléctricas en ambos,
+                // pero si quisieras restringirlo solo a Autos, descomenta la línea de abajo:
+                // datosFiltrados = data.filter(row => row.unidad && row.unidad.includes("UNIDAD"));
+            }
+            // Daniel (Super Usuario) ve todo por defecto, así que no filtramos nada aquí.
         }
 
-        // 2. FILTRO DE FECHA: SOLO LOS ÚLTIMOS 30 DÍAS (MES ACTUAL)
+        // --- 2. FILTRO DE FECHA (Para TODOS: solo últimos 30 días) ---
         const fechaLimite = new Date();
-        fechaLimite.setDate(fechaLimite.getDate() - 30); // Restamos 30 días a hoy
+        fechaLimite.setDate(fechaLimite.getDate() - 30); 
 
         datosFiltrados = datosFiltrados.filter(row => {
             if (!row.fecha) return false;
-            // Convertimos la fecha del registro (DD/MM/YYYY) a objeto fecha real
-            const partes = row.fecha.split('/'); // separa dia, mes y año
-            // Ojo: en Javascript los meses van de 0 a 11, por eso restamos 1 al mes
+            const partes = row.fecha.split('/'); // DD/MM/AAAA
             const fechaFila = new Date(partes[2], partes[1] - 1, partes[0]);
             
-            // Si la fecha del control es mayor (más nueva) que el límite, pasa el filtro
             return fechaFila >= fechaLimite;
         });
 
-        // Mostramos los datos filtrados (invertimos para que el más nuevo quede arriba)
         mostrarDatosEnTabla(datosFiltrados.reverse());
 
     }).catch(e => {
         console.error(e);
-        // Datos de prueba por si falla la conexión
         mostrarDatosEnTabla([
             { fecha: "Error", encargado: "-", unidad: "-", control: "Sin conexión", estado: "-", obs: "No se pudo cargar la data" }
         ]);
     });
 }
-
 function verHistorialEspecifico(unidad) {
     document.getElementById('panel-consulta-encargado').style.display = 'block';
     document.getElementById('titulo-consulta').innerText = "Historial - " + unidad;
@@ -2943,6 +2948,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

@@ -87,10 +87,18 @@ function ingresarAlSistema() {
         mostrarPanelAdmin(); 
     }
 }
-
 function cerrarSesion() {
     if(confirm("¿Cerrar sesión?")) {
+        // Borramos el usuario de la memoria
         try { localStorage.removeItem("usuarioBomberosConectado"); } catch(e) {}
+        
+        // Limpiamos los campos de texto para que no quede el nombre anterior
+        const inputNombre = document.getElementById('nombre-login');
+        const inputApellido = document.getElementById('apellido-login');
+        if(inputNombre) inputNombre.value = "";
+        if(inputApellido) inputApellido.value = "";
+
+        // Recargamos la página para volver al inicio (Login)
         location.reload(); 
     }
 }
@@ -498,16 +506,16 @@ function guardarNuevoVencimiento() {
         if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidad, fecha: fecha }); }
         localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
     } else {
-        // --- AQUÍ ESTÁ EL CAMBIO PARA ESCRIBIR LA INSTRUCCIÓN ---
-        const nombreTarea = prompt("Título de la tarea (ej: Reparación de Luces):");
+        // --- MODIFICACIÓN: PEDIR TÍTULO E INSTRUCCIÓN ESPECÍFICA ---
+        const nombreTarea = prompt("Título general (Ej: Tarea General):", "Mantenimiento");
         if (!nombreTarea) return;
         
-        // Ventana para escribir la instrucción al bombero
-        const instruccion = prompt("Instrucción para el bombero (¿Qué debe hacer?):", "Revisar y reparar");
+        // Aquí el suboficial escribe lo que el bombero debe hacer
+        const detalle = prompt("Escribí la instrucción para el bombero (Ej: Arreglar persiana):");
         
         TAREAS_GENERALES_AUTO.push({ 
             tarea: nombreTarea, 
-            instruccion: instruccion || "Sin detalles", // Guardamos lo que escribiste
+            detalle: detalle || "", // Guardamos el detalle específico
             fecha: fecha 
         });
         localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
@@ -525,11 +533,13 @@ function actualizarListaVisual() {
     });
     
     TAREAS_GENERALES_AUTO.forEach(t => { 
-        // MOSTRAMOS LA INSTRUCCIÓN EN LA LISTA
+        // --- MODIFICACIÓN: MOSTRAR EL DETALLE EN COLOR NARANJA ---
         lista.innerHTML += `
-            <li style="margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 5px;">
-                🔧 <b>${t.tarea}</b> <span style="font-size:0.8em; color:#aaa;">(${t.fecha})</span><br>
-                <span style="color: #ff7a00; font-style: italic;">📝 Instrucción: ${t.instruccion || '-'}</span>
+            <li style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                🔧 <b>${t.tarea}</b> <span style="font-size:12px; color:#aaa;">(Vence: ${t.fecha})</span><br>
+                <span style="color: #ff7a00; font-style: italic; display:block; margin-top:3px;">
+                    📝 ${t.detalle ? t.detalle : 'Sin instrucción detallada'}
+                </span>
             </li>`; 
     });
 }
@@ -2981,6 +2991,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

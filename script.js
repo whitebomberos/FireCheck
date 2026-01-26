@@ -4,7 +4,6 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
 // --- PERMISOS ---
-// --- PERMISOS ---
 const ENCARGADOS_DATA = {
     // AUTOMOTORES
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
@@ -18,7 +17,7 @@ const ENCARGADOS_DATA = {
     "MARA CASTILLO": ["SOLO_MATERIALES"], 
     "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
 
-    // SUPER USUARIOS Y NUEVOS AGREGADOS
+    // SUPER USUARIOS Y ENCARGADOS
     "DANIEL FARINACCIO": ["SUPER_USUARIO"],
     "CRISTIAN BALEY": ["SOLO_MATERIALES"],
     "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"],
@@ -26,6 +25,7 @@ const ENCARGADOS_DATA = {
     // ELECTRICIDAD
     "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
 };
+
 const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
 
 // VARIABLES
@@ -477,7 +477,7 @@ function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     
-    // Ahora permite entrar si es encargado de automotores O Super Usuario
+    // Permite entrar si es encargado de automotores O Super Usuario
     if (!permisos.includes("SOLO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) return;
     
     document.getElementById("panel-admin-vencimientos").style.display = "block";
@@ -505,16 +505,16 @@ function guardarNuevoVencimiento() {
         if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidad, fecha: fecha }); }
         localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
     } else {
-        // AQUÍ ESTÁ EL CAMBIO: Se piden dos cosas ahora
+        // --- AQUÍ ESTÁ EL CAMBIO PARA ESCRIBIR LA INSTRUCCIÓN ---
         const nombreTarea = prompt("Título de la tarea (ej: Reparación de Luces):");
         if (!nombreTarea) return;
         
-        // Apartado para escribir la instrucción al bombero
-        const instruccion = prompt("Escribí la instrucción para el bombero (¿Qué debe hacer?):", "Revisar y reparar");
+        // Ventana para escribir la instrucción al bombero
+        const instruccion = prompt("Instrucción para el bombero (¿Qué debe hacer?):", "Revisar y reparar");
         
         TAREAS_GENERALES_AUTO.push({ 
             tarea: nombreTarea, 
-            instruccion: instruccion || "Sin detalles", // Guardamos la instrucción
+            instruccion: instruccion || "Sin detalles", // Guardamos lo que escribiste
             fecha: fecha 
         });
         localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
@@ -532,7 +532,7 @@ function actualizarListaVisual() {
     });
     
     TAREAS_GENERALES_AUTO.forEach(t => { 
-        // AQUÍ MOSTRAMOS LA INSTRUCCIÓN QUE ESCRIBIÓ EL SUBOFICIAL
+        // MOSTRAMOS LA INSTRUCCIÓN EN LA LISTA
         lista.innerHTML += `
             <li style="margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 5px;">
                 🔧 <b>${t.tarea}</b> <span style="font-size:0.8em; color:#aaa;">(${t.fecha})</span><br>
@@ -540,6 +540,7 @@ function actualizarListaVisual() {
             </li>`; 
     });
 }
+
 function toggleSelectorUnidad() {
     const tipo = document.getElementById("admin-tipo").value;
     document.getElementById("box-admin-unidad").style.display = (tipo === "VTV") ? "block" : "none";
@@ -2970,6 +2971,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

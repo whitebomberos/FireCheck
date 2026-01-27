@@ -67,10 +67,9 @@ function iniciarValidacionFaceID() {
 }
 
 function ingresarAlSistema() {
-    // Ocultar login
+    // Ocultar login y mostrar menú
     document.getElementById('loginScreen').style.display = 'none';
-    
-    // NOTA: Ya no mostramos el homeScreen aquí arriba, lo hacemos al final según corresponda.
+    document.getElementById('homeScreen').style.display = 'block';
     
     // Mostrar nombre y foto (si existe)
     const display = document.getElementById('user-display-name');
@@ -81,37 +80,14 @@ function ingresarAlSistema() {
         </div>`;
     }
     
-    // Generamos las grillas y botones
     generarGrillaUnidades();
     generarGrillaMateriales();
-
-    const p = ENCARGADOS_DATA[usuarioActivo];
     
-    // Si es encargado, preparamos el panel de carga (pero no decidimos dónde mostrarlo aún)
+    // NOTA: Quité de aquí mostrarPanelAdmin() para que no salga en el inicio.
+    // Se cargará recién cuando entren a Automotores o Materiales.
+    const p = ENCARGADOS_DATA[usuarioActivo];
     if (p) {
         generarBotonesFiltroEncargado(p);
-        mostrarPanelAdmin(); 
-    }
-
-    // --- LÓGICA DE REDIRECCIÓN AUTOMÁTICA ---
-    let redirigido = false;
-
-    if (p) {
-        // Si es AUTOMOTORES (y NO es Super Usuario), entra directo a Automotores
-        if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
-            mostrarBotonesUnidades(); 
-            redirigido = true;
-        } 
-        // Si es MATERIALES (y NO es Super Usuario), entra directo a Materiales
-        else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
-            mostrarBotonesMateriales();
-            redirigido = true;
-        }
-    }
-
-    // Si NO fue redirigido (es Super Usuario, Electricidad o Bombero sin cargo), mostramos el Menú Principal
-    if (!redirigido) {
-        document.getElementById('homeScreen').style.display = 'block';
     }
 }
 
@@ -153,9 +129,21 @@ function mostrarBotonesUnidades() {
     }
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('sistema-gestion').style.display = 'block';
-    document.getElementById('grilla-unidades').style.display = 'grid';
+    
+    // Mostramos la grilla de Autos
+    const grilla = document.getElementById('grilla-unidades');
+    grilla.style.display = 'grid';
     document.getElementById('grilla-materiales').style.display = 'none';
     document.getElementById('titulo-control').innerText = "AUTOMOTORES";
+
+    // --- AGREGADO: MOVER PANEL DE CARGA AQUÍ ---
+    const panel = document.getElementById('panel-admin-vencimientos');
+    if (panel) {
+        // Lo insertamos antes de la grilla de unidades para que se vea arriba
+        grilla.parentNode.insertBefore(panel, grilla);
+        // Llamamos a la función para que decida qué mostrar (VTV + Tarea)
+        mostrarPanelAdmin();
+    }
 }
 
 function mostrarBotonesMateriales() {
@@ -165,9 +153,21 @@ function mostrarBotonesMateriales() {
     }
     document.getElementById('homeScreen').style.display = 'none';
     document.getElementById('sistema-gestion').style.display = 'block';
-    document.getElementById('grilla-materiales').style.display = 'grid';
+    
+    // Mostramos la grilla de Materiales
+    const grilla = document.getElementById('grilla-materiales');
+    grilla.style.display = 'grid';
     document.getElementById('grilla-unidades').style.display = 'none';
     document.getElementById('titulo-control').innerText = "MATERIALES";
+
+    // --- AGREGADO: MOVER PANEL DE CARGA AQUÍ ---
+    const panel = document.getElementById('panel-admin-vencimientos');
+    if (panel) {
+        // Lo insertamos antes de la grilla de materiales
+        grilla.parentNode.insertBefore(panel, grilla);
+        // Llamamos a la función para que decida qué mostrar (Solo Tarea)
+        mostrarPanelAdmin();
+    }
 }
 
 function entrarElectricidad() {
@@ -3119,6 +3119,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

@@ -3101,15 +3101,6 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR GUARDIA", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR GUARDIA", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR GUARDIA", "item": "Limpieza", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Numero Interno",  tipo: "escritura", cant: "-"  },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Numero de Cilindro",  tipo: "escritura", cant: "-"  },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Vencimiento de Carga",  tipo: "escritura", cant: "-"  },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Vencimiento de P/H",  tipo: "escritura", cant: "-"  },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Seguro Colocado", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Estado de la Tobera", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Estado de Manómetro", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Estado de Carga", "cant": "N/A" },
-{ "cat": "EXTINTOR UNIDAD 15", "item": "Limpieza", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Numero Interno",  tipo: "escritura", cant: "-"  },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Numero de Cilindro",  tipo: "escritura", cant: "-"  },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Vencimiento de Carga",  tipo: "escritura", cant: "-"  },
@@ -3119,6 +3110,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

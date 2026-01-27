@@ -478,45 +478,73 @@ function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     
-    // Permite entrar si es encargado de automotores O Super Usuario
+    // Solo entran los de Automotores o Super Usuarios
     if (!permisos.includes("SOLO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) return;
     
     document.getElementById("panel-admin-vencimientos").style.display = "block";
+    
+    // Forzamos a que se vea el selector de unidad
+    document.getElementById("box-admin-unidad").style.display = "block"; 
+
     const select = document.getElementById("admin-unidad");
     if(select) {
-        select.innerHTML = "";
-        LISTA_IDS_UNIDADES.forEach(u => {
-            let opt = document.createElement("option");
-            opt.value = "UNIDAD " + u; opt.text = "UNIDAD " + u;
-            select.appendChild(opt);
-        });
+        select.innerHTML = ""; // Limpiamos el menú
+
+        // 1. SI ES JEFE (Kevin, Federico, Superusuario) -> Agregamos la opción GENERAL
+        if (permisos.includes("VER_TODO_AUTOMOTORES") || permisos.includes("SUPER_USUARIO")) {
+            let optGral = document.createElement("option");
+            optGral.value = "GENERAL FLOTA"; 
+            optGral.text = "🌍 GENERAL (Toda la flota)";
+            optGral.style.fontWeight = "bold";
+            select.appendChild(optGral);
+            
+            // Y luego cargamos TODAS las unidades
+            LISTA_IDS_UNIDADES.forEach(u => {
+                let opt = document.createElement("option");
+                opt.value = "UNIDAD " + u; 
+                opt.text = "UNIDAD " + u;
+                select.appendChild(opt);
+            });
+        } 
+        // 2. SI ES SUBOFICIAL (Miguel, Eneas) -> Solo cargamos SUS unidades
+        else {
+            permisos.forEach(p => {
+                // Solo agregamos lo que empiece con "UNIDAD" (filtramos permisos como SOLO_AUTOMOTORES)
+                if (p.startsWith("UNIDAD")) {
+                    let opt = document.createElement("option");
+                    opt.value = p; 
+                    opt.text = p;
+                    select.appendChild(opt);
+                }
+            });
+        }
     }
     actualizarListaVisual();
 }
 
 function guardarNuevoVencimiento() {
-    const tipo = document.getElementById("admin-tipo").value;
+    const tipo = document.getElementById("admin-tipo").value; // VTV o TAREA
     const fecha = document.getElementById("admin-fecha").value;
+    const unidadElegida = document.getElementById("admin-unidad").value; // U1, U2, o GENERAL
     
     if (!fecha) return alert("Por favor, seleccioná una fecha.");
-    
+    if (!unidadElegida) return alert("Por favor, seleccioná una unidad.");
+
     if (tipo === "VTV") {
-        const unidad = document.getElementById("admin-unidad").value;
-        const index = VTV_DATA.findIndex(v => v.unidad === unidad);
-        if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidad, fecha: fecha }); }
+        const index = VTV_DATA.findIndex(v => v.unidad === unidadElegida);
+        if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidadElegida, fecha: fecha }); }
         localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
     } else {
-        // --- MODIFICACIÓN: PEDIR TÍTULO E INSTRUCCIÓN ESPECÍFICA ---
-        const nombreTarea = prompt("Título general (Ej: Tarea General):", "Mantenimiento");
-        if (!nombreTarea) return;
+        // ES UNA TAREA (Ej: Arreglar persiana)
+        const instruccion = prompt(`Escribí la tarea para ${unidadElegida}:`, "Arreglar persiana");
         
-        // Aquí el suboficial escribe lo que el bombero debe hacer
-        const detalle = prompt("Escribí la instrucción para el bombero (Ej: Arreglar persiana):");
-        
+        if (!instruccion) return; // Si cancela, no guarda nada
+
         TAREAS_GENERALES_AUTO.push({ 
-            tarea: nombreTarea, 
-            detalle: detalle || "", // Guardamos el detalle específico
-            fecha: fecha 
+            unidad: unidadElegida, // Guardamos a qué unidad pertenece
+            tarea: instruccion,    // Lo que escribió el suboficial
+            fecha: fecha,
+            creadoPor: usuarioActivo
         });
         localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
     }
@@ -545,8 +573,9 @@ function actualizarListaVisual() {
 }
 
 function toggleSelectorUnidad() {
-    const tipo = document.getElementById("admin-tipo").value;
-    document.getElementById("box-admin-unidad").style.display = (tipo === "VTV") ? "block" : "none";
+    // Como ahora la tarea es específica por unidad, 
+    // mostramos SIEMPRE el selector de unidades (ya sea para VTV o Tarea)
+    document.getElementById("box-admin-unidad").style.display = "block";
 }
 
 function gestionarAlertas(sector, nombreUnidad) {
@@ -2991,6 +3020,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

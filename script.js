@@ -536,7 +536,7 @@ function guardarNuevoVencimiento() {
         localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
     } else {
         // ES UNA TAREA (Ej: Arreglar persiana)
-        const instruccion = prompt(`Escribí la tarea para ${unidadElegida}:`, "Arreglar persiana");
+        const instruccion = prompt(`Escribí la tarea para ${unidadElegida}:`);
         
         if (!instruccion) return; // Si cancela, no guarda nada
 
@@ -3020,6 +3020,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

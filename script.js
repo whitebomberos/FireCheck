@@ -42,6 +42,9 @@ let VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || [
 let TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [
     { tarea: "Engrase general de flota", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] }
 ];
+// Agregalo debajo de TAREAS_GENERALES_AUTO
+let TAREAS_MATERIALES = JSON.parse(localStorage.getItem("db_tareas_mat")) || [];
+
 let DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || [];
 
 // --- FUNCIONES DE LOGIN (ESTO HACE QUE EL BOTÓN FUNCIONE) ---
@@ -478,54 +481,86 @@ function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     
-    // Solo entran los de Automotores o Super Usuarios
-    if (!permisos.includes("SOLO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) return;
+    // Verificamos si tiene permiso de Automotores, Materiales o Super Usuario
+    const esAuto = permisos.includes("SOLO_AUTOMOTORES") || permisos.includes("VER_TODO_AUTOMOTORES");
+    const esMat = permisos.includes("SOLO_MATERIALES");
+    const esSuper = permisos.includes("SUPER_USUARIO");
+
+    if (!esAuto && !esMat && !esSuper) return;
     
     document.getElementById("panel-admin-vencimientos").style.display = "block";
-    
-    // Forzamos a que se vea el selector de unidad
-    document.getElementById("box-admin-unidad").style.display = "block"; 
-
+    const boxTipo = document.getElementById("admin-tipo"); // El selector VTV/Tarea
     const select = document.getElementById("admin-unidad");
+
     if(select) {
         select.innerHTML = ""; // Limpiamos el menú
 
-        // 1. SI ES JEFE (Kevin, Federico, Superusuario) -> Agregamos la opción GENERAL
-        if (permisos.includes("VER_TODO_AUTOMOTORES") || permisos.includes("SUPER_USUARIO")) {
-            let optGral = document.createElement("option");
-            optGral.value = "GENERAL FLOTA"; 
-            optGral.text = "🌍 GENERAL (Toda la flota)";
-            optGral.style.fontWeight = "bold";
-            select.appendChild(optGral);
-            
-            // Y luego cargamos TODAS las unidades
+        // --- CASO 1: MATERIALES (Ocultamos VTV, mostramos unidades MAT) ---
+        if (esMat && !esSuper) {
+            // Ocultamos el selector de VTV porque no lo usan
+            if(boxTipo) boxTipo.style.display = 'none'; 
+            document.getElementById("box-admin-unidad").style.display = "block"; // Forzamos mostrar selector unidad
+
+            // Unidades Fijas de Materiales
+            const extras = ["MAT CENTRAL", "MAT DESTACAMENTO"];
+            extras.forEach(u => {
+                let opt = document.createElement("option");
+                opt.value = u; opt.text = u;
+                select.appendChild(opt);
+            });
+
+            // Unidades Numeradas (MAT U-X)
             LISTA_IDS_UNIDADES.forEach(u => {
                 let opt = document.createElement("option");
-                opt.value = "UNIDAD " + u; 
-                opt.text = "UNIDAD " + u;
+                opt.value = "MAT U-" + u; 
+                opt.text = "MAT U-" + u;
                 select.appendChild(opt);
             });
         } 
-        // 2. SI ES SUBOFICIAL (Miguel, Eneas) -> Solo cargamos SUS unidades
+        
+        // --- CASO 2: AUTOMOTORES / SUPER USUARIO ---
         else {
-            permisos.forEach(p => {
-                // Solo agregamos lo que empiece con "UNIDAD" (filtramos permisos como SOLO_AUTOMOTORES)
-                if (p.startsWith("UNIDAD")) {
+            // Mostramos el selector de VTV
+            if(boxTipo) boxTipo.style.display = 'inline-block';
+            document.getElementById("box-admin-unidad").style.display = "block";
+
+            // Opción GENERAL (Solo jefes auto o super)
+            if (permisos.includes("VER_TODO_AUTOMOTORES") || esSuper) {
+                let optGral = document.createElement("option");
+                optGral.value = "GENERAL FLOTA"; 
+                optGral.text = "🌍 GENERAL (Toda la flota)";
+                optGral.style.fontWeight = "bold";
+                select.appendChild(optGral);
+                
+                // Todas las unidades
+                LISTA_IDS_UNIDADES.forEach(u => {
                     let opt = document.createElement("option");
-                    opt.value = p; 
-                    opt.text = p;
+                    opt.value = "UNIDAD " + u; opt.text = "UNIDAD " + u;
                     select.appendChild(opt);
-                }
-            });
+                });
+            } else {
+                // Solo las asignadas al suboficial
+                permisos.forEach(p => {
+                    if (p.startsWith("UNIDAD")) {
+                        let opt = document.createElement("option");
+                        opt.value = p; opt.text = p;
+                        select.appendChild(opt);
+                    }
+                });
+            }
         }
     }
     actualizarListaVisual();
 }
 
 function guardarNuevoVencimiento() {
-    const tipo = document.getElementById("admin-tipo").value; // VTV o TAREA
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    const esMat = permisos.includes("SOLO_MATERIALES") && !permisos.includes("SUPER_USUARIO");
+    
+    // Si es Materiales, forzamos que el tipo sea "TAREA" (ignoramos el selector VTV)
+    const tipo = esMat ? "TAREA" : document.getElementById("admin-tipo").value;
     const fecha = document.getElementById("admin-fecha").value;
-    const unidadElegida = document.getElementById("admin-unidad").value; // U1, U2, o GENERAL
+    const unidadElegida = document.getElementById("admin-unidad").value;
     
     if (!fecha) return alert("Por favor, seleccioná una fecha.");
     if (!unidadElegida) return alert("Por favor, seleccioná una unidad.");
@@ -535,18 +570,24 @@ function guardarNuevoVencimiento() {
         if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidadElegida, fecha: fecha }); }
         localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
     } else {
-        // ES UNA TAREA (Ej: Arreglar persiana)
-        const instruccion = prompt(`Escribí la tarea para ${unidadElegida}:`);
-        
-        if (!instruccion) return; // Si cancela, no guarda nada
+        // TAREA (Ya sea de Auto o Materiales)
+        const instruccion = prompt(`Escribí la tarea para ${unidadElegida}:`, "Reparar/Controlar");
+        if (!instruccion) return;
 
-        TAREAS_GENERALES_AUTO.push({ 
-            unidad: unidadElegida, // Guardamos a qué unidad pertenece
-            tarea: instruccion,    // Lo que escribió el suboficial
+        const nuevaTarea = { 
+            unidad: unidadElegida, 
+            tarea: instruccion, 
             fecha: fecha,
             creadoPor: usuarioActivo
-        });
-        localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
+        };
+
+        if (esMat) {
+            TAREAS_MATERIALES.push(nuevaTarea);
+            localStorage.setItem("db_tareas_mat", JSON.stringify(TAREAS_MATERIALES));
+        } else {
+            TAREAS_GENERALES_AUTO.push(nuevaTarea);
+            localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
+        }
     }
     actualizarListaVisual();
 }
@@ -555,21 +596,43 @@ function actualizarListaVisual() {
     const lista = document.getElementById("lista-vencimientos-cargados");
     if(!lista) return;
     lista.innerHTML = "";
-    
-    VTV_DATA.forEach(v => { 
-        lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`; 
-    });
-    
-    TAREAS_GENERALES_AUTO.forEach(t => { 
-        // --- MODIFICACIÓN: MOSTRAR EL DETALLE EN COLOR NARANJA ---
-        lista.innerHTML += `
-            <li style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">
-                🔧 <b>${t.tarea}</b> <span style="font-size:12px; color:#aaa;">(Vence: ${t.fecha})</span><br>
-                <span style="color: #ff7a00; font-style: italic; display:block; margin-top:3px;">
-                    📝 ${t.detalle ? t.detalle : 'Sin instrucción detallada'}
-                </span>
-            </li>`; 
-    });
+
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    const esMat = permisos.includes("SOLO_MATERIALES") && !permisos.includes("SUPER_USUARIO");
+
+    // --- SI ES MATERIALES: Muestra solo tareas de materiales ---
+    if (esMat) {
+        TAREAS_MATERIALES.forEach(t => { 
+            lista.innerHTML += `
+                <li style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                    <div style="color:#ff7a00; font-weight:bold;">🛠️ ${t.unidad}</div>
+                    <div style="font-size:14px; color:white; margin-top:2px;">${t.tarea}</div>
+                    <div style="font-size:11px; color:#888; margin-top:2px;">
+                        Límite: ${t.fecha} - Por: ${t.creadoPor}
+                    </div>
+                </li>`; 
+        });
+    } 
+    // --- SI ES AUTOMOTORES O SUPER: Muestra VTV + Tareas Auto ---
+    else {
+        VTV_DATA.forEach(v => { 
+            lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`; 
+        });
+        
+        TAREAS_GENERALES_AUTO.forEach(t => { 
+            const estilo = t.unidad === "GENERAL FLOTA" ? "color:#ff7a00;" : "color:#4dabf7;";
+            const icono = t.unidad === "GENERAL FLOTA" ? "🌍" : "🔧";
+            
+            lista.innerHTML += `
+                <li style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                    <div style="${estilo} font-weight:bold;">${icono} ${t.unidad}</div>
+                    <div style="font-size:14px; color:white; margin-top:2px;">${t.tarea}</div>
+                    <div style="font-size:11px; color:#888; margin-top:2px;">
+                        Límite: ${t.fecha} - Por: ${t.creadoPor || 'Admin'}
+                    </div>
+                </li>`; 
+        });
+    }
 }
 
 function toggleSelectorUnidad() {
@@ -3020,6 +3083,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

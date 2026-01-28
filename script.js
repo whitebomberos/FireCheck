@@ -67,11 +67,11 @@ function iniciarValidacionFaceID() {
 }
 
 function ingresarAlSistema() {
-    // Ocultar login y mostrar menú
+    // 1. Ocultar login y mostrar menú principal
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('homeScreen').style.display = 'block';
     
-    // Mostrar nombre y foto (si existe)
+    // 2. Mostrar nombre y foto
     const display = document.getElementById('user-display-name');
     if(display) {
         display.innerHTML = `<div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
@@ -80,16 +80,20 @@ function ingresarAlSistema() {
         </div>`;
     }
     
+    // 3. Generar grillas (pero NO mostramos el panel de admin todavía)
     generarGrillaUnidades();
     generarGrillaMateriales();
     
-    // NOTA: Quité de aquí mostrarPanelAdmin() para que no salga en el inicio.
-    // Se cargará recién cuando entren a Automotores o Materiales.
+    // Si hay permisos, habilitamos el botón de recarga del encargado, pero el panel grande se oculta
     const p = ENCARGADOS_DATA[usuarioActivo];
     if (p) {
         generarBotonesFiltroEncargado(p);
+        // Ocultamos el panel por si quedó abierto de antes
+        const panel = document.getElementById("panel-admin-vencimientos");
+        if(panel) panel.style.display = 'none';
     }
 }
+
 
 function cerrarSesion() {
     if(confirm("¿Cerrar sesión?")) {
@@ -121,7 +125,6 @@ window.addEventListener('load', function() {
 // =========================================================
 //  2. LÓGICA DE NAVEGACIÓN
 // =========================================================
-
 function mostrarBotonesUnidades() {
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     if (permisos && (permisos.includes("SOLO_MATERIALES") || permisos.includes("SUBOFICIAL_ELECTRICIDAD"))) {
@@ -136,12 +139,13 @@ function mostrarBotonesUnidades() {
     document.getElementById('grilla-materiales').style.display = 'none';
     document.getElementById('titulo-control').innerText = "AUTOMOTORES";
 
-    // --- AGREGADO: MOVER PANEL DE CARGA AQUÍ ---
+    // --- MOVER PANEL A AUTOMOTORES ---
     const panel = document.getElementById('panel-admin-vencimientos');
     if (panel) {
-        // Lo insertamos antes de la grilla de unidades para que se vea arriba
+        panel.style.display = 'block'; // Lo hacemos visible
+        // Lo insertamos justo antes de la grilla de botones
         grilla.parentNode.insertBefore(panel, grilla);
-        // Llamamos a la función para que decida qué mostrar (VTV + Tarea)
+        // Configuramos el panel para MODO AUTOMOTOR (con VTV)
         mostrarPanelAdmin();
     }
 }
@@ -160,12 +164,13 @@ function mostrarBotonesMateriales() {
     document.getElementById('grilla-unidades').style.display = 'none';
     document.getElementById('titulo-control').innerText = "MATERIALES";
 
-    // --- AGREGADO: MOVER PANEL DE CARGA AQUÍ ---
+    // --- MOVER PANEL A MATERIALES ---
     const panel = document.getElementById('panel-admin-vencimientos');
     if (panel) {
-        // Lo insertamos antes de la grilla de materiales
+        panel.style.display = 'block'; // Lo hacemos visible
+        // Lo insertamos justo antes de la grilla de botones
         grilla.parentNode.insertBefore(panel, grilla);
-        // Llamamos a la función para que decida qué mostrar (Solo Tarea)
+        // Configuramos el panel para MODO MATERIALES (Sin VTV)
         mostrarPanelAdmin();
     }
 }
@@ -514,12 +519,10 @@ function mostrarPanelAdmin() {
     if (!esAuto && !esMat && !esSuper) return;
     
     const panel = document.getElementById("panel-admin-vencimientos");
-    panel.style.display = "block";
-
-    // --- DIBUJAMOS EL FORMULARIO CON EL NUEVO CAMPO DE TEXTO ---
-    // Esto asegura que el campo exista sin que toques el HTML
-    panel.innerHTML = `
-        <h3 style="color:white; border-bottom:1px solid #555; padding-bottom:5px;">Panel de Carga</h3>
+    
+    // --- DIBUJAMOS EL FORMULARIO (INPUT DE TEXTO INCLUIDO) ---
+        panel.innerHTML = `
+        <h3 style="color:white; border-bottom:1px solid #555; padding-bottom:5px;">Panel de Gestión</h3>
         
         <select id="admin-tipo" onchange="toggleSelectorUnidad()" style="padding:8px; margin-bottom:5px; width:100%; background:#333; color:white; border:1px solid #555;">
             <option value="TAREA">🔧 Tarea / Reparación</option>
@@ -532,23 +535,22 @@ function mostrarPanelAdmin() {
 
         <input type="date" id="admin-fecha" style="padding:8px; margin-bottom:5px; width:95%; background:#333; color:white; border:1px solid #555;">
         
-        <input type="text" id="admin-tarea-desc" placeholder="Escribí la tarea aquí (Ej: Arreglar luces)..." 
+        <input type="text" id="admin-tarea-desc" placeholder="Describí la tarea aquí..." 
                style="padding:10px; margin-bottom:10px; width:94%; display:block; background:#ddd; color:black; border:none; font-weight:bold;">
 
-        <button onclick="guardarNuevoVencimiento()" style="padding:10px 15px; width:100%; background:#b71c1c; color:white; border:none; font-weight:bold; cursor:pointer;">GUARDAR DATOS</button>
+        <button onclick="guardarNuevoVencimiento()" style="padding:10px 15px; width:100%; background:#b71c1c; color:white; border:none; font-weight:bold; cursor:pointer;">GUARDAR</button>
         
         <ul id="lista-vencimientos-cargados" style="color:white; text-align:left; margin-top:15px; font-size:13px; list-style:none; padding:0;"></ul>
     `;
 
-    // --- LÓGICA DE LLENADO DEL SELECT (Igual que antes) ---
     const boxTipo = document.getElementById("admin-tipo");
     const select = document.getElementById("admin-unidad");
 
-    // CASO 1: MATERIALES
+    // --- LÓGICA: MATERIALES (Sin VTV, solo Tareas) ---
     if (esMat && !esSuper) {
         if(boxTipo) {
             boxTipo.value = "TAREA"; 
-            boxTipo.style.display = 'none'; // Ocultamos selector VTV
+            boxTipo.style.display = 'none'; // Ocultamos VTV
         }
         // Llenar unidades Materiales
         ["MAT CENTRAL", "MAT DESTACAMENTO"].forEach(u => {
@@ -558,17 +560,22 @@ function mostrarPanelAdmin() {
             let opt = document.createElement("option"); opt.value = "MAT U-" + u; opt.text = "MAT U-" + u; select.appendChild(opt);
         });
     } 
-    // CASO 2: AUTOMOTORES / SUPER
+    // --- LÓGICA: AUTOMOTORES / SUPER (Con VTV) ---
     else {
-        // Llenar unidades Automotores
+        if(boxTipo) boxTipo.style.display = 'inline-block';
+
+        // Si es JEFE (Kevin, Federico, Super) -> Ve opción GENERAL
         if (permisos.includes("VER_TODO_AUTOMOTORES") || esSuper) {
             let optGral = document.createElement("option");
             optGral.value = "GENERAL FLOTA"; optGral.text = "🌍 GENERAL (Toda la flota)"; optGral.style.fontWeight = "bold";
             select.appendChild(optGral);
+            
             LISTA_IDS_UNIDADES.forEach(u => {
                 let opt = document.createElement("option"); opt.value = "UNIDAD " + u; opt.text = "UNIDAD " + u; select.appendChild(opt);
             });
-        } else {
+        } 
+        // Si es SUBOFICIAL -> Solo ve SUS unidades asignadas
+        else {
             permisos.forEach(p => {
                 if (p.startsWith("UNIDAD")) {
                     let opt = document.createElement("option"); opt.value = p; opt.text = p; select.appendChild(opt);
@@ -577,49 +584,57 @@ function mostrarPanelAdmin() {
         }
     }
     
-    // Configurar visibilidad inicial del campo de texto
     toggleSelectorUnidad();
     actualizarListaVisual();
+}
+
+function toggleSelectorUnidad() {
+    const tipo = document.getElementById("admin-tipo").value;
+    const inputDesc = document.getElementById("admin-tarea-desc");
+    
+    // Si elige VTV, ocultamos la descripción. Si es TAREA, la mostramos.
+    if (inputDesc) {
+        inputDesc.style.display = (tipo === "VTV") ? "none" : "block";
+    }
 }
 
 function guardarNuevoVencimiento() {
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     const esMat = permisos.includes("SOLO_MATERIALES") && !permisos.includes("SUPER_USUARIO");
     
-    // Obtenemos valores directos del formulario
     const tipo = esMat ? "TAREA" : document.getElementById("admin-tipo").value;
     const fecha = document.getElementById("admin-fecha").value;
     const unidadElegida = document.getElementById("admin-unidad").value;
-    const descripcion = document.getElementById("admin-tarea-desc").value; // Leemos el input nuevo
+    const descripcion = document.getElementById("admin-tarea-desc").value;
     
-    if (!fecha) return alert("Por favor, seleccioná una fecha.");
-    if (!unidadElegida) return alert("Por favor, seleccioná una unidad.");
+    if (!fecha) return alert("Falta la fecha.");
+    if (!unidadElegida) return alert("Falta la unidad.");
 
     if (tipo === "VTV") {
         const index = VTV_DATA.findIndex(v => v.unidad === unidadElegida);
         if (index >= 0) { VTV_DATA[index].fecha = fecha; } else { VTV_DATA.push({ unidad: unidadElegida, fecha: fecha }); }
         localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
     } else {
-        // Validación: Que haya escrito algo
-        if (!descripcion.trim()) return alert("Por favor, escribí la tarea a realizar.");
+        if (!descripcion.trim()) return alert("Escribí qué tarea hay que realizar.");
 
         const nuevaTarea = { 
             unidad: unidadElegida, 
-            tarea: descripcion, // Usamos lo que escribió en el input
+            tarea: descripcion, 
             fecha: fecha,
             creadoPor: usuarioActivo
         };
 
         if (esMat) {
-            TAREAS_MATERIALES.push(nuevaTarea);
-            localStorage.setItem("db_tareas_mat", JSON.stringify(TAREAS_MATERIALES));
+            // Guardamos en Materiales
+            let tareasMat = JSON.parse(localStorage.getItem("db_tareas_mat")) || [];
+            tareasMat.push(nuevaTarea);
+            localStorage.setItem("db_tareas_mat", JSON.stringify(tareasMat));
         } else {
+            // Guardamos en Automotores
             TAREAS_GENERALES_AUTO.push(nuevaTarea);
             localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
         }
-        
-        // Limpiamos el campo de texto para la próxima carga
-        document.getElementById("admin-tarea-desc").value = "";
+        document.getElementById("admin-tarea-desc").value = ""; // Limpiar
     }
     actualizarListaVisual();
 }
@@ -632,48 +647,29 @@ function actualizarListaVisual() {
     const permisos = ENCARGADOS_DATA[usuarioActivo];
     const esMat = permisos.includes("SOLO_MATERIALES") && !permisos.includes("SUPER_USUARIO");
 
-    // --- SI ES MATERIALES: Muestra solo tareas de materiales ---
     if (esMat) {
-        TAREAS_MATERIALES.forEach(t => { 
+        let tareasMat = JSON.parse(localStorage.getItem("db_tareas_mat")) || [];
+        tareasMat.forEach(t => { 
             lista.innerHTML += `
                 <li style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">
                     <div style="color:#ff7a00; font-weight:bold;">🛠️ ${t.unidad}</div>
-                    <div style="font-size:14px; color:white; margin-top:2px;">${t.tarea}</div>
-                    <div style="font-size:11px; color:#888; margin-top:2px;">
-                        Límite: ${t.fecha} - Por: ${t.creadoPor}
-                    </div>
+                    <div style="font-size:14px; color:white;">${t.tarea}</div>
+                    <div style="font-size:11px; color:#888;">Límite: ${t.fecha}</div>
                 </li>`; 
         });
-    } 
-    // --- SI ES AUTOMOTORES O SUPER: Muestra VTV + Tareas Auto ---
-    else {
+    } else {
         VTV_DATA.forEach(v => { 
             lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> - VTV: ${v.fecha}</li>`; 
         });
-        
         TAREAS_GENERALES_AUTO.forEach(t => { 
             const estilo = t.unidad === "GENERAL FLOTA" ? "color:#ff7a00;" : "color:#4dabf7;";
-            const icono = t.unidad === "GENERAL FLOTA" ? "🌍" : "🔧";
-            
             lista.innerHTML += `
                 <li style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">
-                    <div style="${estilo} font-weight:bold;">${icono} ${t.unidad}</div>
-                    <div style="font-size:14px; color:white; margin-top:2px;">${t.tarea}</div>
-                    <div style="font-size:11px; color:#888; margin-top:2px;">
-                        Límite: ${t.fecha} - Por: ${t.creadoPor || 'Admin'}
-                    </div>
+                    <div style="${estilo} font-weight:bold;">${t.unidad}</div>
+                    <div style="font-size:14px; color:white;">${t.tarea}</div>
+                    <div style="font-size:11px; color:#888;">Límite: ${t.fecha} - ${t.creadoPor || ''}</div>
                 </li>`; 
         });
-    }
-}
-
-function toggleSelectorUnidad() {
-    const tipo = document.getElementById("admin-tipo").value;
-    const inputDesc = document.getElementById("admin-tarea-desc");
-    
-    // Si es VTV, ocultamos el campo de descripción. Si es TAREA, lo mostramos.
-    if (inputDesc) {
-        inputDesc.style.display = (tipo === "VTV") ? "none" : "block";
     }
 }
 
@@ -3110,6 +3106,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

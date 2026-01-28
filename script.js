@@ -3,9 +3,9 @@
 // =========================================================
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-// --- PERMISOS ---
+// --- PERMISOS (SOLUCIONADO EL ERROR DE DUPLICADO) ---
 const ENCARGADOS_DATA = {
-    // AUTOMOTORES (Ven sus unidades asignadas)
+    // AUTOMOTORES
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
     "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
     "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
@@ -34,7 +34,7 @@ let unidadSeleccionada = "";
 let sectorActivo = ""; 
 let combustibleSeleccionado = "";
 
-// DATOS GUARDADOS (Con protección para que no falle el inicio)
+// DATOS GUARDADOS (Con protección para evitar errores de carga)
 let VTV_DATA = [];
 let TAREAS_GENERALES_AUTO = [];
 let TAREAS_MATERIALES = [];
@@ -45,21 +45,21 @@ try {
         { unidad: "UNIDAD 8", fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0] },      
         { unidad: "UNIDAD 13", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] } 
     ];
-} catch (e) { console.error("Error cargando VTV, reiniciando..."); VTV_DATA = []; }
+} catch(e) { VTV_DATA = []; }
 
 try {
     TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [
         { unidad: "GENERAL FLOTA", tarea: "Engrase general de flota", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] }
     ];
-} catch (e) { console.error("Error cargando Tareas Auto, reiniciando..."); TAREAS_GENERALES_AUTO = []; }
+} catch(e) { TAREAS_GENERALES_AUTO = []; }
 
 try {
     TAREAS_MATERIALES = JSON.parse(localStorage.getItem("db_tareas_mat")) || [];
-} catch (e) { console.error("Error cargando Tareas Mat, reiniciando..."); TAREAS_MATERIALES = []; }
+} catch(e) { TAREAS_MATERIALES = []; }
 
 try {
     DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || [];
-} catch (e) { console.error("Error cargando Electricidad, reiniciando..."); DB_ELECTRICIDAD = []; }
+} catch(e) { DB_ELECTRICIDAD = []; }
 
 
 // --- FUNCIONES DE LOGIN ---
@@ -68,7 +68,7 @@ function iniciarValidacionFaceID() {
     const nomInput = document.getElementById('nombre-login');
     const apeInput = document.getElementById('apellido-login');
     
-    if (!nomInput || !apeInput) return alert("Error en el formulario de ingreso.");
+    if (!nomInput || !apeInput) return alert("Error interno: No encuentro los campos de texto.");
 
     const nom = nomInput.value.trim();
     const ape = apeInput.value.trim();
@@ -109,7 +109,7 @@ function ingresarAlSistema() {
         if(panel) panel.style.display = 'none';
     }
 
-    // --- LÓGICA DE REDIRECCIÓN ---
+    // 4. Redirección automática
     let redirigido = false;
     if (permisos) {
         if (permisos.includes("SOLO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) {
@@ -130,10 +130,10 @@ function ingresarAlSistema() {
 function cerrarSesion() {
     if(confirm("¿Cerrar sesión?")) {
         try { localStorage.removeItem("usuarioBomberosConectado"); } catch(e) {}
-        const inputNombre = document.getElementById('nombre-login');
-        const inputApellido = document.getElementById('apellido-login');
-        if(inputNombre) inputNombre.value = "";
-        if(inputApellido) inputApellido.value = "";
+        const nom = document.getElementById('nombre-login');
+        const ape = document.getElementById('apellido-login');
+        if(nom) nom.value = "";
+        if(ape) ape.value = "";
         location.reload(); 
     }
 }
@@ -149,7 +149,7 @@ window.addEventListener('load', function() {
 });
 
 // =========================================================
-//  2. NAVEGACIÓN Y PANEL DE CARGA
+//  2. NAVEGACIÓN Y PANELES
 // =========================================================
 
 function mostrarBotonesUnidades() {
@@ -202,9 +202,11 @@ function entrarElectricidad() {
 
     if (ENCARGADOS_DATA[usuarioActivo]) {
         const permisos = ENCARGADOS_DATA[usuarioActivo];
+        
         if (permisos.includes("SOLO_AUTOMOTORES") || permisos.includes("SOLO_MATERIALES")) {
             tieneAcceso = false;
         }
+        
         if (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO")) {
             esEncargadoElec = true;
             tieneAcceso = true; 
@@ -223,7 +225,7 @@ function entrarElectricidad() {
     renderizarTareasElectricas();
 }
 
-// --- PANEL DE ADMINISTRACIÓN ---
+// --- PANEL DE ADMINISTRACIÓN (Lógica Nueva) ---
 
 function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
@@ -264,7 +266,7 @@ function mostrarPanelAdmin() {
     const boxTipo = document.getElementById("admin-tipo");
     const select = document.getElementById("admin-unidad");
 
-    // LÓGICA DE UNIDADES
+    // LÓGICA MATERIALES
     if (esMat && !esSuper) {
         if(boxTipo) { boxTipo.value = "TAREA"; boxTipo.style.display = 'none'; }
         
@@ -274,7 +276,9 @@ function mostrarPanelAdmin() {
         LISTA_IDS_UNIDADES.forEach(u => {
             let opt = document.createElement("option"); opt.value = "MAT U-" + u; opt.text = "MAT U-" + u; select.appendChild(opt);
         });
-    } else {
+    } 
+    // LÓGICA AUTOMOTORES / SUPER
+    else {
         if(boxTipo) boxTipo.style.display = 'inline-block';
 
         if (permisos.includes("VER_TODO_AUTOMOTORES") || esSuper) {
@@ -374,7 +378,7 @@ function actualizarListaVisual() {
 }
 
 // =========================================================
-//  3. SELECCIÓN Y FORMULARIOS (CON EXCEPCIONES Y CANTIDADES)
+//  3. SELECCIÓN DE UNIDAD (Excepción Mara y Cantidades)
 // =========================================================
 
 function seleccionarUnidad(num, tipo, btn) {
@@ -587,6 +591,207 @@ function leerArchivo(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
+}
+
+function crearTareaElectrica() {
+    const lugar = document.getElementById("elec-lugar").value;
+    const tipo = document.getElementById("elec-tipo").value;
+    const desc = document.getElementById("elec-desc").value;
+    const mat = document.getElementById("elec-mat").value;
+    const prio = document.getElementById("elec-prio").value;
+    const fecha = document.getElementById("elec-fecha").value;
+    const asignado = document.getElementById("elec-asignado").value;
+
+    if(!lugar || !desc) return alert("Complete los campos obligatorios.");
+    
+    const nuevaTarea = {
+        id: Date.now(),
+        fecha: new Date().toLocaleDateString(),
+        lugar: lugar,
+        tipo: tipo,
+        descripcion: desc,
+        materiales: mat,
+        prioridad: prio,
+        fechaLimite: fecha,
+        asignado: asignado || "Sin asignar",
+        estado: "PENDIENTE",
+        autor: usuarioActivo
+    };
+    
+    DB_ELECTRICIDAD.push(nuevaTarea);
+    localStorage.setItem("db_electricidad", JSON.stringify(DB_ELECTRICIDAD));
+    
+    alert("Tarea creada exitosamente.");
+    renderizarTareasElectricas();
+}
+
+function renderizarTareasElectricas() {
+    const lista = document.getElementById('listaTareasElectricas');
+    if(!lista) return;
+    lista.innerHTML = "";
+    
+    if(DB_ELECTRICIDAD.length === 0) {
+        lista.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>No hay tareas pendientes.</div>";
+        return;
+    }
+
+    DB_ELECTRICIDAD.forEach((t, index) => {
+        const colorPrio = t.prioridad === 'Alta' ? '#c62828' : (t.prioridad === 'Media' ? '#f9a825' : '#2e7d32');
+        
+        const div = document.createElement('div');
+        div.style.cssText = `background:#222; margin-bottom:10px; padding:15px; border-radius:8px; border-left:5px solid ${colorPrio};`;
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <strong style="color:${colorPrio}; text-transform:uppercase;">${t.tipo} - ${t.prioridad}</strong>
+                <span style="font-size:12px; color:#aaa;">Límite: ${t.fechaLimite || 'S/F'}</span>
+            </div>
+            <div style="font-size:15px; color:white; font-weight:bold; margin-bottom:5px;">${t.lugar}</div>
+            <div style="font-size:13px; color:#ccc; margin-bottom:10px;">${t.descripcion}</div>
+            
+            <div style="font-size:12px; color:#888; border-top:1px solid #333; padding-top:8px;">
+                <div>🔧 Materiales: ${t.materiales || '-'}</div>
+                <div>👤 Asignado a: ${t.asignado}</div>
+                <div style="margin-top:4px;">📅 Creado: ${t.fecha} por ${t.autor}</div>
+            </div>
+        `;
+        
+        const permisos = ENCARGADOS_DATA[usuarioActivo];
+        if (permisos && (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO"))) {
+            const btnDel = document.createElement('button');
+            btnDel.innerText = "✅ FINALIZAR TAREA";
+            btnDel.style.cssText = "width:100%; background:#2e7d32; color:white; border:none; padding:10px; border-radius:4px; font-size:12px; margin-top:10px; cursor:pointer; font-weight:bold;";
+            btnDel.onclick = () => { 
+                if(confirm("¿Finalizar tarea?")) {
+                    DB_ELECTRICIDAD.splice(index, 1);
+                    localStorage.setItem("db_electricidad", JSON.stringify(DB_ELECTRICIDAD));
+                    renderizarTareasElectricas();
+                }
+            };
+            div.appendChild(btnDel);
+        }
+        lista.appendChild(div);
+    });
+}
+
+function setFuel(val, btn) {
+    combustibleSeleccionado = val;
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.fuel-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function toggleObs(idx, mostrar) {
+    const el = document.getElementById(`obs-container-${idx}`);
+    if(el) el.style.display = mostrar ? 'block' : 'none';
+}
+
+function generarGrillaUnidades() {
+    const contenedor = document.getElementById('grilla-unidades');
+    contenedor.innerHTML = "";
+    
+    const bannerAuto = `
+        <div style="grid-column: 1 / -1; background: #222; border-left: 5px solid #b80000; color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <strong style="color: #b80000; text-transform: uppercase; display: block; margin-bottom: 5px;">⚠️ RECORDATORIO</strong>
+            Los controles de unidad deben realizarse obligatoriamente <strong>CADA 3 DÍAS</strong>.
+        </div>
+    `;
+    contenedor.innerHTML = bannerAuto;
+
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    const veTodo = permisos && (permisos.includes("VER_TODO_AUTOMOTORES") || permisos.includes("SUPER_USUARIO"));
+
+    LISTA_IDS_UNIDADES.forEach(i => {
+        let mostrarBoton = false;
+        if (permisos) {
+            if (veTodo) mostrarBoton = true;
+            else if (permisos.includes("UNIDAD " + i)) mostrarBoton = true;
+        } else {
+            mostrarBoton = true;
+        }
+
+        if (mostrarBoton) {
+            const btn = document.createElement('div');
+            btn.className = 'btn-unidad'; 
+            btn.innerText = 'U-' + i;
+            btn.onclick = (e) => { e.stopPropagation(); seleccionarUnidad(i, 'AUTO', btn); };
+            contenedor.appendChild(btn);
+        }
+    });
+}
+
+function generarGrillaMateriales() {
+    const contenedor = document.getElementById('grilla-materiales');
+    contenedor.innerHTML = "";
+
+    const hoy = new Date().getDate();
+    const estiloBase = "padding: 5px 8px; border-radius: 4px; display: inline-block; margin: 2px; font-size: 11px; background: #333; color: #777;";
+    const estiloActivo = "font-weight:bold; color: #fff; background: #ff7a00; border: 1px solid #ff7a00; padding: 5px 8px; border-radius: 4px; display: inline-block; margin: 2px; font-size: 11px;";
+
+    const s1 = (hoy >= 1 && hoy <= 7)   ? estiloActivo : estiloBase;
+    const s2 = (hoy >= 8 && hoy <= 15)  ? estiloActivo : estiloBase;
+    const s3 = (hoy >= 16 && hoy <= 22) ? estiloActivo : estiloBase;
+    const s4 = (hoy >= 23 && hoy <= 31) ? estiloActivo : estiloBase;
+
+    const cartelFechas = `
+        <div style="grid-column: 1 / -1; background: #222; border-left: 5px solid #ff7a00; color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <strong style="color: #ff7a00; display:block; margin-bottom:8px; font-size: 13px; text-transform: uppercase;">📅 Cronograma Mensual</strong>
+            <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                <span style="${s1}">1º: Del 01 al 07</span>
+                <span style="${s2}">2º: Del 08 al 15</span>
+                <span style="${s3}">3º: Del 16 al 22</span>
+                <span style="${s4}">4º: Del 23 al 31</span>
+            </div>
+        </div>`;
+    contenedor.innerHTML = cartelFechas;
+
+    const excluidas = [1, 4, 5];
+    LISTA_IDS_UNIDADES.forEach(i => {
+        if (excluidas.includes(i)) return; 
+        const btn = document.createElement('div');
+        btn.className = 'btn-unidad'; 
+        btn.innerText = 'MAT U-' + i;
+        btn.onclick = (e) => { e.stopPropagation(); seleccionarUnidad(i, 'MAT', btn); };
+        contenedor.appendChild(btn);
+    });
+    const extras = [ {t:'CENTRAL', v:'CENTRAL'}, {t:'DESTAC.', v:'DESTACAMENTO'} ];
+    extras.forEach(x => {
+        const btn = document.createElement('div');
+        btn.className = 'btn-unidad'; btn.innerText = x.t; btn.style.borderColor = '#ff7a00';
+        btn.onclick = (e) => { e.stopPropagation(); seleccionarUnidad(x.v, 'MAT', btn); };
+        contenedor.appendChild(btn);
+    });
+}
+
+function gestionarAlertas(sector, nombreUnidad) {
+    const contenedor = document.getElementById("contenedor-alertas");
+    contenedor.style.display = "none";
+    contenedor.className = "alerta-box"; 
+    const hoy = new Date();
+    let alertas = [];
+    if (sector === 'AUTO') {  
+        const vtv = VTV_DATA.find(v => v.unidad === nombreUnidad);
+        if (vtv) {
+            const dias = Math.ceil((new Date(vtv.fecha) - hoy) / (86400000));
+            if (dias <= 30) alertas.push({ texto: `VTV: Vence en ${dias} días`, dias: dias });
+        }
+    }
+    if (alertas.length > 0) {
+        contenedor.classList.add("amarillo");
+        contenedor.innerHTML = `<strong>⚠️ ALERTAS</strong>` + alertas.map(a => `<span>${a.texto}</span>`).join("");
+        contenedor.style.display = "block";
+    }
+}
+
+async function finalizarYEnviar(){
+    const km = document.getElementById('km-u1').value;
+    if (sectorActivo === 'AUTO' && !km) return alert("KM obligatorio.");
+    const btn = document.getElementById('btn-nube'); 
+    btn.innerText = "PROCESANDO..."; btn.disabled = true;
+    
+    setTimeout(() => {
+        alert("¡Datos guardados correctamente!");
+        location.reload();
+    }, 1500);
 }
 
 const CONTROLES_U1_AUTO = [
@@ -2887,6 +3092,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

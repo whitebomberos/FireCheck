@@ -3,7 +3,7 @@
 // =========================================================
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-// --- PERMISOS (SOLUCIONADO EL ERROR DE ESCRITURA) ---
+// --- PERMISOS CORREGIDOS ---
 const ENCARGADOS_DATA = {
     // AUTOMOTORES
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
@@ -34,7 +34,7 @@ let unidadSeleccionada = "";
 let sectorActivo = ""; 
 let combustibleSeleccionado = "";
 
-// DATOS GUARDADOS (Con protección para que no falle si están vacíos)
+// DATOS GUARDADOS (Con protección para que no se trabe)
 let VTV_DATA = [];
 let TAREAS_GENERALES_AUTO = [];
 let TAREAS_MATERIALES = [];
@@ -42,15 +42,12 @@ let DB_ELECTRICIDAD = [];
 
 try {
     VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || [
-        { unidad: "UNIDAD 8", fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0] },      
-        { unidad: "UNIDAD 13", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] } 
+        { unidad: "UNIDAD 8", fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0] } 
     ];
 } catch(e) { VTV_DATA = []; }
 
 try {
-    TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [
-        { unidad: "GENERAL FLOTA", tarea: "Engrase general de flota", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] }
-    ];
+    TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [];
 } catch(e) { TAREAS_GENERALES_AUTO = []; }
 
 try {
@@ -62,16 +59,13 @@ try {
 } catch(e) { DB_ELECTRICIDAD = []; }
 
 
-// --- FUNCIONES DE LOGIN ---
+// =========================================================
+//  FUNCIONES DE LOGIN E INGRESO
+// =========================================================
 
 function iniciarValidacionFaceID() {
-    const nomInput = document.getElementById('nombre-login');
-    const apeInput = document.getElementById('apellido-login');
-    
-    if (!nomInput || !apeInput) return alert("Error interno: No se encuentran los campos de login.");
-
-    const nom = nomInput.value.trim();
-    const ape = apeInput.value.trim();
+    const nom = document.getElementById('nombre-login').value.trim();
+    const ape = document.getElementById('apellido-login').value.trim();
     
     if (!nom || !ape) {
         return alert("Por favor, ingresá nombre y apellido.");
@@ -84,9 +78,8 @@ function iniciarValidacionFaceID() {
 }
 
 function ingresarAlSistema() {
-    // 1. Ocultar login y mostrar menú
+    // 1. Ocultar login
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('homeScreen').style.display = 'block';
     
     // 2. Mostrar nombre
     const display = document.getElementById('user-display-name');
@@ -101,27 +94,31 @@ function ingresarAlSistema() {
     generarGrillaUnidades();
     generarGrillaMateriales();
 
-    const permisos = ENCARGADOS_DATA[usuarioActivo];
-    if (permisos) {
-        generarBotonesFiltroEncargado(permisos);
-        // Ocultamos el panel al inicio por seguridad
+    // 4. Configurar botones de encargado si corresponde
+    const p = ENCARGADOS_DATA[usuarioActivo];
+    if (p) {
+        generarBotonesFiltroEncargado(p);
+        // Ocultamos el panel al inicio (se mostrará dentro de la sección correspondiente)
         const panel = document.getElementById("panel-admin-vencimientos");
         if(panel) panel.style.display = 'none';
     }
 
-    // 4. Redirección automática
+    // 5. LÓGICA DE REDIRECCIÓN (Para entrar directo al sector)
     let redirigido = false;
-    if (permisos) {
-        if (permisos.includes("SOLO_AUTOMOTORES") && !permisos.includes("SUPER_USUARIO")) {
+    if (p) {
+        // Si es Automotores (y no Super), va directo a Autos
+        if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
             mostrarBotonesUnidades(); 
             redirigido = true;
         } 
-        else if (permisos.includes("SOLO_MATERIALES") && !permisos.includes("SUPER_USUARIO")) {
+        // Si es Materiales (y no Super), va directo a Materiales
+        else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
             mostrarBotonesMateriales();
             redirigido = true;
         }
     }
 
+    // Si no fue redirigido (ej: Super Usuario), muestra el inicio normal
     if (!redirigido) {
         document.getElementById('homeScreen').style.display = 'block';
     }
@@ -202,11 +199,9 @@ function entrarElectricidad() {
 
     if (ENCARGADOS_DATA[usuarioActivo]) {
         const permisos = ENCARGADOS_DATA[usuarioActivo];
-        
         if (permisos.includes("SOLO_AUTOMOTORES") || permisos.includes("SOLO_MATERIALES")) {
             tieneAcceso = false;
         }
-        
         if (permisos.includes("SUBOFICIAL_ELECTRICIDAD") || permisos.includes("SUPER_USUARIO")) {
             esEncargadoElec = true;
             tieneAcceso = true; 
@@ -225,7 +220,9 @@ function entrarElectricidad() {
     renderizarTareasElectricas();
 }
 
-// --- PANEL DE ADMINISTRACIÓN (Lógica Nueva) ---
+// =========================================================
+//  3. PANEL DE GESTIÓN (VTV / TAREAS)
+// =========================================================
 
 function mostrarPanelAdmin() {
     if(!usuarioActivo || !ENCARGADOS_DATA[usuarioActivo]) return;
@@ -266,7 +263,7 @@ function mostrarPanelAdmin() {
     const boxTipo = document.getElementById("admin-tipo");
     const select = document.getElementById("admin-unidad");
 
-    // LÓGICA MATERIALES
+    // LÓGICA MATERIALES (Sin VTV)
     if (esMat && !esSuper) {
         if(boxTipo) { boxTipo.value = "TAREA"; boxTipo.style.display = 'none'; }
         
@@ -277,7 +274,7 @@ function mostrarPanelAdmin() {
             let opt = document.createElement("option"); opt.value = "MAT U-" + u; opt.text = "MAT U-" + u; select.appendChild(opt);
         });
     } 
-    // LÓGICA AUTOMOTORES / SUPER
+    // LÓGICA AUTOMOTORES / SUPER (Con VTV)
     else {
         if(boxTipo) boxTipo.style.display = 'inline-block';
 
@@ -378,7 +375,7 @@ function actualizarListaVisual() {
 }
 
 // =========================================================
-//  3. SELECCIÓN DE UNIDAD (Excepción Mara y Cantidades)
+//  4. SELECCIÓN DE UNIDAD (Excepción Mara y Cantidades)
 // =========================================================
 
 function seleccionarUnidad(num, tipo, btn) {
@@ -795,7 +792,6 @@ async function finalizarYEnviar(){
         location.reload();
     }, 1500);
 }
-
 const CONTROLES_U1_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
     { cat: "DIARIO", item: "2.- Limpieza ventanillas y parabrisas", cant: "-" },
@@ -3094,6 +3090,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

@@ -3,7 +3,7 @@
 // =========================================================
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-// --- PERMISOS (SOLUCIONADO EL ERROR DE DUPLICADO) ---
+// --- PERMISOS (SOLUCIONADO EL ERROR DE ESCRITURA) ---
 const ENCARGADOS_DATA = {
     // AUTOMOTORES
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
@@ -34,7 +34,7 @@ let unidadSeleccionada = "";
 let sectorActivo = ""; 
 let combustibleSeleccionado = "";
 
-// DATOS GUARDADOS (Con protección para evitar errores de carga)
+// DATOS GUARDADOS (Con protección para que no falle si están vacíos)
 let VTV_DATA = [];
 let TAREAS_GENERALES_AUTO = [];
 let TAREAS_MATERIALES = [];
@@ -68,7 +68,7 @@ function iniciarValidacionFaceID() {
     const nomInput = document.getElementById('nombre-login');
     const apeInput = document.getElementById('apellido-login');
     
-    if (!nomInput || !apeInput) return alert("Error interno: No encuentro los campos de texto.");
+    if (!nomInput || !apeInput) return alert("Error interno: No se encuentran los campos de login.");
 
     const nom = nomInput.value.trim();
     const ape = apeInput.value.trim();
@@ -149,7 +149,7 @@ window.addEventListener('load', function() {
 });
 
 // =========================================================
-//  2. NAVEGACIÓN Y PANELES
+//  2. NAVEGACIÓN Y PANELES (UBICACIÓN CORRECTA)
 // =========================================================
 
 function mostrarBotonesUnidades() {
@@ -506,7 +506,9 @@ function seleccionarUnidad(num, tipo, btn) {
 
 function generarBotonesFiltroEncargado(p) {
     const cont = document.getElementById('selector-unidades-encargado');
-    cont.innerHTML = `<button class="btn" style="padding:5px 10px; font-size:12px; background:#444; color:white; border:none;" onclick="consultarReportesEncargado()">🔄 RECARGAR TABLA</button>`;
+    if (cont) {
+        cont.innerHTML = `<button class="btn" style="padding:5px 10px; font-size:12px; background:#444; color:white; border:none;" onclick="consultarReportesEncargado()">🔄 RECARGAR TABLA</button>`;
+    }
 }
 
 function consultarReportesEncargado() {
@@ -3092,6 +3094,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];
+
 
 
 

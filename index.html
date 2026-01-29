@@ -1,163 +1,735 @@
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8">
+
+    <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Bomberos</title>
+
+    <title>Sistema Interno - Bomberos</title>
+
     
+
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#b80000">
+
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <link rel="icon" type="image/png" href="icon.png">
+
+
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+
     <style>
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Montserrat', sans-serif; background: #0f0f0f; color: #fff; -webkit-tap-highlight-color: transparent; }
+
         
-        /* === LOGIN (SOLUCIONADO) === */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #111; z-index: 2000; }
-        .login-box { background: #222; padding: 40px 30px; width: 90%; max-width: 400px; border-radius: 20px; text-align: center; border: 1px solid #333; }
-        .login-box h1 { color: #b80000; margin-bottom: 5px; font-size: 22px; text-transform: uppercase; }
-        .login-box input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #444; background: #1a1a1a; color: #fff; text-align: center; font-size: 16px; outline: none; }
+
+        body {
+
+            font-family: 'Montserrat', sans-serif;
+
+            background: #0f0f0f;
+
+            color: #fff;
+
+            -webkit-tap-highlight-color: transparent;
+
+        }
+
+
+
+        /* ===== LOGIN ===== */
+
+        #loginScreen {
+
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+
+            display: flex; align-items: center; justify-content: center;
+
+            background: linear-gradient(rgba(0,0,0,.85), rgba(0,0,0,.95)), url('https://images.unsplash.com/photo-1552084777-626a5759750b?q=80&w=1470') center/cover no-repeat;
+
+            z-index: 2000;
+
+        }
+
+        .login-box {
+
+            background: rgba(20, 20, 20, 0.95);
+
+            padding: 40px 30px;
+
+            width: 90%; max-width: 400px;
+
+            border-radius: 20px;
+
+            box-shadow: 0 30px 80px rgba(0,0,0,.9);
+
+            text-align: center;
+
+            border: 1px solid rgba(255,255,255,0.05);
+
+            backdrop-filter: blur(10px);
+
+        }
+
+        .login-box h1 { font-weight: 800; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; font-size: 24px; }
+
+        .login-box p { font-size: 13px; opacity: .6; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+
+        
+
+        .login-box input {
+
+            width: 100%; padding: 15px; margin-bottom: 15px;
+
+            border-radius: 10px; border: 1px solid #333;
+
+            outline: none; font-size: 16px;
+
+            background: #1a1a1a; color: #fff;
+
+            text-align: center; transition: 0.3s;
+
+        }
+
         .login-box input:focus { border-color: #b80000; background: #000; }
-        .btn-login { width: 100%; padding: 15px; border: none; border-radius: 10px; background: linear-gradient(135deg, #b80000, #ff0000); color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+
+        
+
+        .btn-login {
+
+            width: 100%; padding: 15px; border: none; border-radius: 10px;
+
+            background: linear-gradient(135deg, #b80000, #ff0000);
+
+            color: #fff; font-size: 16px; font-weight: 800;
+
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+
+            box-shadow: 0 10px 20px rgba(184, 0, 0, 0.3); transition: 0.3s;
+
+        }
+
         .btn-login:active { transform: scale(0.98); }
 
-        /* PANTALLAS */
-        #homeScreen, #sistema-gestion, #sistema-electricidad { display: none; padding: 20px; min-height: 100vh; animation: fadeIn 0.5s ease; }
-        
-        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
-        .btn-salir { background: none; border: 1px solid #444; color: #888; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        
-        /* SECTORES */
-        .sectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-        .sector { height: 160px; background: #1a1a1a; border-radius: 15px; border: 1px solid #333; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; cursor: pointer; position: relative; overflow: hidden; }
-        .sector.mat { border-left: 5px solid #ff7a00; } .sector.mat h3 { color: #ff7a00; }
-        .sector.auto { border-left: 5px solid #b80000; } .sector.auto h3 { color: #b80000; }
-        .sector.elec { border-left: 5px solid #ffd000; } .sector.elec h3 { color: #ffd000; }
-        .sector h3 { margin: 0; font-size: 22px; font-weight: 900; text-transform: uppercase; }
-        .sector span { font-size: 11px; color: #888; letter-spacing: 1px; font-weight: 600; }
 
-        /* GESTION */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-volver { background: #333; color: white; border: 1px solid #555; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; }
-        
-        .grid-unidades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .btn-unidad { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 15px 5px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 13px; cursor: pointer; }
-        .btn-unidad.active { background: #b80000; color: white; border-color: #ff0000; }
 
-        /* PANEL DE CARGA */
-        .panel-carga { background: #222; padding: 15px; border-radius: 10px; border: 1px solid #444; margin-bottom: 20px; }
-        .panel-carga h3 { margin-top: 0; color: white; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 15px; }
-        .form-input, select, input { width: 100%; padding: 12px; background: #111; border: 1px solid #444; color: white; margin-bottom: 10px; border-radius: 5px; font-family: inherit; }
-        .btn-guardar { width: 100%; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        
-        ul { list-style: none; padding: 0; margin: 0; }
-        li { padding: 10px; border-bottom: 1px solid #333; font-size: 13px; color: #ccc; }
+        /* ===== HOME ===== */
 
-        /* CHECKLIST */
-        .check-item-container { background: #222; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 3px solid #444; }
-        .item-actions { display: flex; gap: 10px; margin-top: 10px; }
-        .item-actions label { flex: 1; background: #333; padding: 8px; text-align: center; border-radius: 5px; cursor: pointer; border: 1px solid #444; color: #888; font-size: 12px; font-weight: bold; }
+        #homeScreen {
+
+            display: none; padding: 20px;
+
+            animation: fadeIn 0.8s ease;
+
+            min-height: 100vh;
+
+        }
+
+
+
+        header {
+
+            display: flex; align-items: center; justify-content: space-between;
+
+            margin-bottom: 40px; padding-bottom: 20px;
+
+            border-bottom: 1px solid #222;
+
+        }
+
+        .user-info { font-size: 14px; font-weight: 600; color: #ccc; text-align: right; }
+
+        .btn-salir {
+
+            background: none; border: 1px solid #444; color: #888;
+
+            padding: 5px 12px; border-radius: 20px; font-size: 11px;
+
+            font-weight: 700; margin-top: 5px; cursor: pointer;
+
+        }
+
+
+
+        h2 { font-size: 24px; font-weight: 800; margin-bottom: 30px; border-left: 5px solid #b80000; padding-left: 15px; text-transform: uppercase; }
+
+
+
+        .sectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+        
+
+        .sector {
+
+            position: relative; height: 200px;
+
+            border-radius: 18px; overflow: hidden;
+
+            box-shadow: 0 10px 30px rgba(0,0,0,.5);
+
+            cursor: pointer; transition: transform .3s;
+
+            background: #1a1a1a; border: 1px solid #333;
+
+            display: flex; flex-direction: column; justify-content: flex-end;
+
+            padding: 20px;
+
+        }
+
+        .sector:active { transform: scale(0.98); }
+
+        .sector i {
+
+            position: absolute; top: -20px; right: -20px;
+
+            font-size: 150px; opacity: 0.1; transition: 0.3s;
+
+        }
+
+        .sector:hover i { opacity: 0.2; transform: rotate(-10deg); }
+
+
+
+        .sector-content { position: relative; z-index: 2; }
+
+        .sector-content h3 { font-size: 24px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase; }
+
+        .sector-content span { font-size: 12px; font-weight: 600; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+
+
+
+        .sector.mat { border-left: 6px solid #ff7a00; }
+
+        .sector.mat h3 { color: #ff7a00; }
+
+        .sector.auto { border-left: 6px solid #b80000; }
+
+        .sector.auto h3 { color: #b80000; }
+
+        .sector.elec { border-left: 6px solid #ffd000; }
+
+        .sector.elec h3 { color: #ffd000; }
+
+
+
+        .contacts { margin-top: 60px; }
+
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+
+        .contact {
+
+            background: #151515; padding: 20px;
+
+            border-radius: 12px; border: 1px solid #222;
+
+            display: flex; flex-direction: column; gap: 5px;
+
+        }
+
+        .contact small { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        .contact h4 { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
+
+        .contact p { font-size: 13px; color: #888; margin: 0; }
+
+
+
+        /* ===== WORK AREAS ===== */
+
+        #sistema-gestion, #sistema-electricidad {
+
+            display: none; background: #0f0f0f; min-height: 100vh; padding: 20px;
+
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+
+            overflow-y: auto; z-index: 3000;
+
+        }
+
+
+
+        .top-bar {
+
+            display: flex; justify-content: space-between; align-items: center;
+
+            margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px;
+
+        }
+
+        .btn-volver {
+
+            background: #222; color: #fff; border: 1px solid #444;
+
+            padding: 8px 15px; border-radius: 30px; font-weight: bold; cursor: pointer;
+
+        }
+
+
+
+        .grid-unidades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+        .btn-unidad {
+
+            background: #1a1a1a; border: 1px solid #333; color: #ccc;
+
+            padding: 20px 10px; border-radius: 12px; font-weight: 700;
+
+            font-size: 14px; cursor: pointer; text-align: center;
+
+        }
+
+        .btn-unidad.active { background: #b80000; color: #fff; border-color: #ff0000; }
+
+
+
+        .container-checklist { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 1px solid #333; margin-top: 20px; }
+
+        .check-item-container { background: #222; padding: 15px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #444; }
+
+        
+
+        .check-item-row { display: flex; flex-direction: column; gap: 10px; }
+
+        .check-item-row span:first-child { font-weight: 600; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+
+        
+
+        .item-actions { display: flex; gap: 10px; }
+
+        .item-actions label {
+
+            flex: 1; background: #333; padding: 10px; text-align: center;
+
+            border-radius: 8px; font-size: 13px; font-weight: bold; color: #888;
+
+            border: 1px solid #444;
+
+        }
+
         .item-actions label:has(input:checked) { background: #fff; color: #000; }
-        .fuel-options { display: flex; gap: 5px; margin-top: 10px; }
-        .fuel-btn { flex: 1; background: #333; border: 1px solid #444; padding: 8px; border-radius: 5px; text-align: center; font-size: 10px; cursor: pointer; }
-        .fuel-btn.active { background: #ff7a00; color: black; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+
+        .fuel-options { display: flex; gap: 5px; width: 100%; margin-top: 10px; justify-content: space-between; }
+
+        .fuel-btn { 
+
+            padding: 12px 5px; border: 1px solid #444; border-radius: 8px; 
+
+            cursor: pointer; background: #333; font-size: 11px; font-weight: bold; 
+
+            flex: 1; text-align: center; color: #aaa; transition: 0.2s; 
+
+        }
+
+        .fuel-btn:hover { background: #444; }
+
+        .fuel-btn.active { 
+
+            background: #ff7a00; color: #000; border-color: #ff7a00; 
+
+            box-shadow: 0 0 10px rgba(255, 122, 0, 0.4); 
+
+        }
+
+
+
+        .btn-save {
+
+            width: 100%; padding: 20px; background: linear-gradient(135deg, #2e7d32, #1b5e20);
+
+            color: white; border: none; border-radius: 12px; font-weight: 800; margin-top: 30px;
+
+            font-size: 16px; text-transform: uppercase; letter-spacing: 1px;
+
+        }
+
+
+
+        /* ESTILOS ESPECIFICOS DE ELECTRICIDAD */
+
+        .form-label { font-size: 12px; font-weight: 700; color: #888; margin-top: 10px; display: block; text-transform: uppercase; }
+
+        .form-input { 
+
+            width: 100%; padding: 12px; background: #222; border: 1px solid #444; 
+
+            color: white; border-radius: 8px; margin-top: 5px; font-family: inherit; 
+
+        }
+
+        .form-input:focus { border-color: #ffd000; outline: none; }
+
+        
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) { .grid-unidades { grid-template-columns: repeat(2, 1fr); } }
+
     </style>
+
 </head>
+
 <body>
 
-    <div id="loginScreen">
-        <div class="login-box">
-            <h1 style="color:#b80000; margin-bottom:5px;">SISTEMA BOMBEROS</h1>
-            <p style="color:#888; margin-bottom:30px; font-size:12px;">INGRESO DE PERSONAL</p>
-            
-            <input type="text" id="nombre-login" placeholder="NOMBRE" autocomplete="off" autocapitalize="words">
-            <input type="text" id="apellido-login" placeholder="APELLIDO" autocomplete="off" autocapitalize="words">
-            
-            <button class="btn-login" onclick="iniciarValidacionFaceID()">INGRESAR</button>
-        </div>
-    </div>
 
-    <div id="homeScreen">
+
+    <section id="loginScreen">
+
+        <div class="login-box">
+
+            <div style="font-size: 50px; margin-bottom: 15px; color: #b80000;"><i class="fa-solid fa-shield-halved"></i></div>
+
+            <h1>Sistema de control y gestion</h1>
+
+            <p>Ing. White · Sistema Interno</p>
+
+            <input type="text" id="nombre-login" placeholder="NOMBRE" autocapitalize="words" autocomplete="off">
+
+            <input type="text" id="apellido-login" placeholder="APELLIDO" autocapitalize="words" autocomplete="off">
+
+            <button class="btn-login" onclick="iniciarValidacionFaceID()">INGRESAR</button>
+
+        </div>
+
+    </section>
+
+
+
+    <section id="homeScreen">
+
         <header>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <i class="fa-solid fa-fire-extinguisher" style="color:#b80000; font-size:24px;"></i>
-                <strong>SISTEMA OPERATIVO</strong>
+
+            <div style="display:flex; align-items:center; gap:15px;">
+
+                <div style="width:45px; height:45px; background:#b80000; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; color:white;">
+
+                    <i class="fa-solid fa-fire-extinguisher"></i>
+
+                </div>
+
+                <div>
+
+                    <strong style="display:block; font-size:16px;">SISTEMA OPERATIVO</strong>
+
+                    <span style="opacity:.6; font-size:11px;">BOMBEROS VOLUNTARIOS</span>
+
+                </div>
+
             </div>
+
             <div class="user-info">
-                <span id="user-display-name" style="display:block; color:#ff7a00; font-size:14px; margin-bottom:5px; font-weight:bold;">Usuario</span>
-                <button class="btn-salir" onclick="cerrarSesion()">SALIR</button>
+
+                <span id="user-display-name" style="color: #ff7a00; display:block;">Usuario</span>
+
+                <button class="btn-salir" onclick="cerrarSesion()">CERRAR SESIÓN</button>
+
             </div>
+
         </header>
 
+
+
+        <h2>SECTORES</h2>
+
         <div class="sectors">
-            <div class="sector auto" onclick="mostrarBotonesUnidades()">
-                <i class="fa-solid fa-truck-front"></i>
-                <div style="z-index:2;"><h3>AUTOMOTORES</h3><span>FLOTA · VTV</span></div>
-            </div>
+
             <div class="sector mat" onclick="mostrarBotonesMateriales()">
+
                 <i class="fa-solid fa-toolbox"></i>
-                <div style="z-index:2;"><h3>MATERIALES</h3><span>INVENTARIO</span></div>
+
+                <div class="sector-content"><h3>Materiales</h3><span>Inventario · Herramientas</span></div>
+
             </div>
+
+            <div class="sector auto" onclick="mostrarBotonesUnidades()">
+
+                <i class="fa-solid fa-truck-front"></i>
+
+                <div class="sector-content"><h3>Automotores</h3><span>Unidades · VTV · Servicios</span></div>
+
+            </div>
+
             <div class="sector elec" onclick="entrarElectricidad()">
+
                 <i class="fa-solid fa-bolt"></i>
-                <div style="z-index:2;"><h3>ELECTRICIDAD</h3><span>MANTENIMIENTO</span></div>
+
+                <div class="sector-content"><h3>Electricidad</h3><span>Mantenimiento · Reparaciones</span></div>
+
             </div>
+
         </div>
-    </div>
+
+
+
+        <div class="contacts">
+
+            <h2 style="border-left-color: #fff;">ENCARGADOS</h2>
+
+            <div class="contact-grid">
+
+                <div class="contact" style="border-left: 3px solid #ff7a00;">
+
+                    <small style="color: #ff7a00;">MATERIALES</small><h4>Mauro Martinez</h4><p>Suboficial Mayor</p>
+
+                </div>
+
+                <div class="contact" style="border-left: 3px solid #b80000;">
+
+                    <small style="color: #b80000;">AUTOMOTORES</small><h4>Kevin Ftuli</h4><p>Suboficial Ayudante 1°</p>
+
+                </div>
+
+                <div class="contact" style="border-left: 3px solid #ffd000;">
+
+                    <small style="color: #ffd000;">ELECTRICIDAD</small><h4>Miguel Alfaro</h4><p>Suboficial Ayudante 1°</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div id="panel-admin-vencimientos" style="display:none; margin-top:40px; padding:20px; border:1px solid #b80000; border-radius:10px;">
+
+            <h3 style="color:#b80000; margin-bottom:15px;">CARGAR VENCIMIENTO</h3>
+
+            <select id="admin-tipo" class="login-box input" style="width:100%; margin-bottom:10px; background:#222; color:white; text-align:left;" onchange="toggleSelectorUnidad()">
+
+                <option value="VTV">VTV</option><option value="GRAL">Tarea General</option>
+
+            </select>
+
+            <div id="box-admin-unidad">
+
+                <select id="admin-unidad" class="login-box input" style="width:100%; margin-bottom:10px; background:#222; color:white; text-align:left;"></select>
+
+            </div>
+
+            <input type="date" id="admin-fecha" class="login-box input" style="width:100%; background:#222; color:white;">
+
+            <button onclick="guardarNuevoVencimiento()" style="width:100%; padding:15px; background:#2e7d32; color:white; border:none; border-radius:8px; font-weight:bold;">GUARDAR</button>
+
+            <ul id="lista-vencimientos-cargados" style="margin-top:15px; font-size:12px; color:#aaa;"></ul>
+
+        </div>
+
+    </section>
+
+
 
     <div id="sistema-gestion">
+
         <div class="top-bar">
-            <h2 id="titulo-control" style="margin:0;">CONTROL</h2>
-            <div id="selector-unidades-encargado"></div> 
+
+            <h2 id="titulo-control" style="margin:0; border:none;">CONTROL</h2>
+
             <button class="btn-volver" onclick="volverAlMenu()">VOLVER</button>
+
         </div>
 
-        <div id="panel-admin-vencimientos" class="panel-carga" style="display:none;"></div>
-
-        <div id="contenedor-alertas" style="background:#ffc107; color:black; padding:10px; margin-bottom:15px; border-radius:5px; display:none; font-weight:bold;"></div>
-        
-        <div id="grilla-unidades" class="grid-unidades" style="display:none;"></div>
         <div id="grilla-materiales" class="grid-unidades" style="display:none;"></div>
 
-        <div id="contenedor-km" style="margin:20px 0; display:none; background:#1a1a1a; padding:15px; border-radius:10px; border:1px solid #444;">
-            <label style="color:#ff7a00; font-weight:bold; display:block; margin-bottom:5px;">KILOMETRAJE ACTUAL:</label>
-            <input type="number" id="km-u1" placeholder="Ej: 45000" style="margin:0;">
+        <div id="grilla-unidades" class="grid-unidades" style="display:none;"></div>
+
+        <div id="contenedor-alertas" style="background:#b80000; color:white; padding:15px; border-radius:8px; margin-bottom:20px; display:none;"></div>
+
+        <div id="contenedor-km" class="container-checklist" style="display:none; margin-top:0; margin-bottom:20px;">
+
+            <span style="display:block; margin-bottom:10px; color:#ff7a00; font-weight:bold;">KILOMETRAJE ACTUAL</span>
+
+            <input type="number" id="km-u1" placeholder="Ej: 45000" style="width:100%; padding:15px; background:#222; border:1px solid #444; color:white; border-radius:8px;">
+
         </div>
 
         <div id="campos-control"></div>
-        <button id="btn-nube" onclick="finalizarYEnviar()" style="display:none; width:100%; padding:15px; background:#2e7d32; color:white; border:none; font-weight:bold; margin-top:20px; border-radius:10px;">☁️ GUARDAR CONTROL</button>
+
+        <button id="btn-nube" class="btn-save" style="display:none;" onclick="finalizarYEnviar()">GUARDAR CONTROL</button>
+
     </div>
+
+
 
     <div id="sistema-electricidad">
+
         <div class="top-bar">
-            <h2 style="margin:0; color:#ffd000;">ELECTRICIDAD</h2>
+
+            <h2 style="margin:0; border:none; color:#ffd000;">ELECTRICIDAD</h2>
+
             <button class="btn-volver" onclick="volverAlMenu()">VOLVER</button>
+
         </div>
+
         
-        <div id="admin-electricidad" class="panel-carga" style="display:none;">
-            <h3 style="color:#ffd000;">Nueva Tarea</h3>
-            <select id="elec-tipo">
-                <option>Reparación</option><option>Instalación</option><option>Mantenimiento</option>
+
+        <div id="admin-electricidad" style="display:none; background:#1a1a1a; padding:20px; border-radius:10px; margin-bottom:20px; border:1px solid #333;">
+
+            <h3 style="color:#ffd000; margin-bottom:15px; margin-top:0;">➕ NUEVA TAREA</h3>
+
+            
+
+            <label class="form-label">TIPO DE TRABAJO</label>
+
+            <select id="elec-tipo" class="form-input">
+
+                <option>Reparación</option>
+
+                <option>Instalación</option>
+
+                <option>Mantenimiento</option>
+
+                <option>Otro</option>
+
             </select>
-            <input type="text" id="elec-lugar" placeholder="Lugar / Sector">
-            <input type="text" id="elec-desc" placeholder="Descripción">
-            <input type="text" id="elec-mat" placeholder="Materiales">
-            <input type="date" id="elec-fecha">
-            <button onclick="crearTareaElectrica()" style="background:#ffd000; color:black;">CREAR TAREA</button>
+
+
+
+            <label class="form-label">LUGAR / SECTOR</label>
+
+            <input type="text" id="elec-lugar" class="form-input">
+
+
+
+            <label class="form-label">DESCRIPCIÓN</label>
+
+            <textarea id="elec-desc" class="form-input" rows="3"></textarea>
+
+
+
+            <label class="form-label">MATERIALES NECESARIOS</label>
+
+            <textarea id="elec-mat" class="form-input" rows="2" placeholder="Ej: Cables, Focos..."></textarea>
+
+
+
+            <label class="form-label">PRIORIDAD</label>
+
+            <select id="elec-prio" class="form-input">
+
+                <option>Baja</option>
+
+                <option>Media</option>
+
+                <option>Alta</option>
+
+            </select>
+
+
+
+            <label class="form-label">FECHA LÍMITE</label>
+
+            <input type="date" id="elec-fecha" class="form-input">
+
+
+
+            <label class="form-label">ASIGNAR A</label>
+
+            <input type="text" id="elec-asignado" class="form-input" placeholder="Nombre del bombero">
+
+
+
+            <button onclick="crearTareaElectrica()" style="width:100%; padding:15px; background:#ffd000; color:black; border:none; border-radius:8px; font-weight:bold; margin-top:20px; cursor:pointer;">CREAR TAREA</button>
+
         </div>
-        
+
+
+
+        <h3 style="color:#fff; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">📋 LISTA DE TAREAS</h3>
+
         <div id="listaTareasElectricas"></div>
+
     </div>
 
-    <div id="panel-consulta-encargado" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:5000; overflow-y:auto; padding:20px;">
-        <button onclick="document.getElementById('panel-consulta-encargado').style.display='none'" style="background:#333; color:white; padding:10px; border:none; margin-bottom:20px; width:100%; font-weight:bold;">CERRAR VENTANA</button>
-        <h2 id="titulo-consulta">HISTORIAL</h2>
-        <div id="cuerpo-consulta-encargado" style="color:#ccc; font-size:12px;"></div>
+
+
+    <div id="panel-consulta-encargado" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0f0f0f; z-index:4000; overflow-y:auto; padding:20px;">
+
+        <div class="top-bar">
+
+            <h2 id="titulo-consulta" style="margin:0; border:none; color:#fff;">HISTORIAL</h2>
+
+            <button class="btn-volver" onclick="document.getElementById('panel-consulta-encargado').style.display='none'; document.getElementById('sistema-gestion').style.display='none'; document.getElementById('homeScreen').style.display='block';">CERRAR</button>
+
+        </div>
+
+        <div id="selector-unidades-encargado"></div>
+
+        <table class="history-table" style="width:100%; color:#ccc; font-size:12px; margin-top:20px; border-collapse: collapse;">
+
+            <thead>
+
+                <tr style="background:#222; text-align:left;">
+
+                    <th style="padding:10px;">FECHA</th>
+
+                    <th style="padding:10px;">ENCARGADO</th>
+
+                    <th style="padding:10px;">UNIDAD</th>
+
+                    <th style="padding:10px;">CONTROL</th>
+
+                    <th style="padding:10px;">ESTADO</th>
+
+                    <th style="padding:10px;">OBS</th>
+
+                    <th style="padding:10px;">FOTO</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="cuerpo-consulta-encargado"></tbody>
+
+        </table>
+
     </div>
+
+
+
+    <script src="script.js"></script>
 
     <script>
+
+        function volverAlMenu() {
+
+            document.getElementById('sistema-gestion').style.display = 'none';
+
+            document.getElementById('sistema-electricidad').style.display = 'none';
+
+            document.getElementById('homeScreen').style.display = 'block';
+
+            document.getElementById('grilla-materiales').style.display = 'none';
+
+            document.getElementById('grilla-unidades').style.display = 'none';
+
+            document.getElementById('campos-control').innerHTML = '';
+
+            document.getElementById('btn-nube').style.display = 'none';
+
+        }
+
+    </script>
+
+</body>
+
+</html>
+<script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
         // ITEMS DE CONTROL (GENÉRICOS PARA QUE NO FALLE, LOS TUYOS SE PEGAN AQUÍ SI LOS TENES)
@@ -2800,6 +3372,7 @@ const ENCARGADOS_DATA = {
 </script>
 </body>
 </html>
+
 
 
 

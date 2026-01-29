@@ -2503,22 +2503,36 @@ const ENCARGADOS_DATA = {
         }
 
         function ingresarAlSistema() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('homeScreen').style.display = 'block';
-            document.getElementById('user-display-name').innerText = usuarioActivo;
-            
-            generarGrillaUnidades();
-            generarGrillaMateriales();
+    // 1. Intentamos ocultar el login y mostrar el home
+    try {
+        const login = document.getElementById('loginScreen');
+        const home = document.getElementById('homeScreen');
+        const display = document.getElementById('user-display-name');
 
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            if (p) {
-                if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
-                    mostrarBotonesUnidades();
-                } else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
-                    mostrarBotonesMateriales();
-                }
-            }
+        if (login) login.style.display = 'none';
+        if (home) home.style.display = 'block';
+        if (display) display.innerText = usuarioActivo;
+    } catch (err) {
+        console.error("Error al cambiar de pantalla:", err);
+    }
+
+    // 2. Intentamos generar las grillas
+    // Usamos try/catch individual para que si una falla, la otra siga
+    try { generarGrillaUnidades(); } catch(e) { console.warn("Error en grilla unidades"); }
+    try { generarGrillaMateriales(); } catch(e) { console.warn("Error en grilla materiales"); }
+
+    // 3. Lógica de permisos y redirección
+    if (typeof ENCARGADOS_DATA !== "undefined" && ENCARGADOS_DATA[usuarioActivo]) {
+        const p = ENCARGADOS_DATA[usuarioActivo];
+        
+        // Redirección directa
+        if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
+            try { mostrarBotonesUnidades(); } catch(e) {}
+        } else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
+            try { mostrarBotonesMateriales(); } catch(e) {}
         }
+    }
+}
 
         function cerrarSesion() {
             if(confirm("¿Cerrar sesión?")) {
@@ -2786,6 +2800,7 @@ const ENCARGADOS_DATA = {
 </script>
 </body>
 </html>
+
 
 
 

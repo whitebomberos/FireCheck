@@ -1,6 +1,6 @@
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-// --- PERMISOS (MANTENIDOS EXACTAMENTE) ---
+// --- PERMISOS ---
 const ENCARGADOS_DATA = {
     "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
     "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
@@ -24,24 +24,24 @@ let unidadSeleccionada = "";
 let sectorActivo = "";
 let combustibleSeleccionado = "";
 
-// DATOS GUARDADOS (CARGA SEGURA)
+// DATOS GUARDADOS
 let VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || [];
 let TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [];
 let TAREAS_MATERIALES = JSON.parse(localStorage.getItem("db_tareas_mat")) || [];
 let DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || [];
 
 // =========================================================
-//  FUNCIONES DE LOGIN (ARREGLADAS)
+//  FUNCIONES DE LOGIN (CORREGIDAS)
 // =========================================================
 
 function iniciarValidacionFaceID() {
-    const nomElement = document.getElementById('nombre-login');
-    const apeElement = document.getElementById('apellido-login');
+    const nomElem = document.getElementById('nombre-login');
+    const apeElem = document.getElementById('apellido-login');
     
-    if (!nomElement || !apeElement) return alert("Error: No se encuentran los campos en el HTML.");
+    if (!nomElem || !apeElem) return alert("Error: No se encuentran los campos de texto.");
 
-    const nom = nomElement.value.trim();
-    const ape = apeElement.value.trim();
+    const nom = nomElem.value.trim();
+    const ape = apeElem.value.trim();
 
     if (!nom || !ape) {
         return alert("Por favor, ingresá nombre y apellido.");
@@ -54,45 +54,34 @@ function iniciarValidacionFaceID() {
 }
 
 function ingresarAlSistema() {
-    // 1. Cambiamos de pantalla (Esto es lo primero para que no parezca 'muerto')
+    // 1. Ocultar login y mostrar Home inmediatamente
     const login = document.getElementById('loginScreen');
     const home = document.getElementById('homeScreen');
-    
     if (login) login.style.display = 'none';
     if (home) home.style.display = 'block';
 
-    // 2. Mostrar nombre de usuario
+    // 2. Mostrar nombre
     const display = document.getElementById('user-display-name');
-    if(display) {
-        display.innerHTML = `<div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
-            <span>${usuarioActivo}</span>
-            <img src="${usuarioActivo}.jpg" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:2px solid #fff;" onerror="this.style.display='none'">
-        </div>`;
-    }
+    if(display) display.innerText = usuarioActivo;
 
-    // 3. Intentar cargar grillas (Si fallan por falta de listas, el login NO se traba)
-    try { generarGrillaUnidades(); } catch(e) { console.warn("Grilla Unidades pendiente"); }
-    try { generarGrillaMateriales(); } catch(e) { console.warn("Grilla Materiales pendiente"); }
+    // 3. Cargar grillas (con protección por si faltan listas)
+    try {
+        if (typeof generarGrillaUnidades === "function") generarGrillaUnidades();
+        if (typeof generarGrillaMateriales === "function") generarGrillaMateriales();
+    } catch(e) { console.error("Grillas no cargadas aún."); }
 
-    // 4. Lógica de Redirección automática
+    // 4. Lógica de permisos
     const p = ENCARGADOS_DATA[usuarioActivo];
     if (p) {
-        generarBotonesFiltroEncargado(p);
+        if (typeof generarBotonesFiltroEncargado === "function") generarBotonesFiltroEncargado(p);
+        if (typeof mostrarPanelAdmin === "function") mostrarPanelAdmin(); 
         
-        // Redirección directa según cargo
-        if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
-            mostrarBotonesUnidades();
-        } else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
-            mostrarBotonesMateriales();
+        // Redirección directa para Automotores o Materiales (excepto Super Usuarios)
+        if (!p.includes("SUPER_USUARIO")) {
+            if (p.includes("SOLO_AUTOMOTORES")) mostrarBotonesUnidades();
+            else if (p.includes("SOLO_MATERIALES")) mostrarBotonesMateriales();
         }
     }
-}
-
-// Asegurarse de que esta función exista para que el botón de volver no de error
-function volverAlMenu() {
-    document.getElementById('sistema-gestion').style.display = 'none';
-    document.getElementById('sistema-electricidad').style.display = 'none';
-    document.getElementById('homeScreen').style.display = 'block';
 }
 
 function cerrarSesion() {
@@ -102,7 +91,6 @@ function cerrarSesion() {
     }
 }
 
-// INICIAR AL CARGAR
 window.addEventListener('load', function() {
     const guardado = localStorage.getItem("usuarioBomberosConectado");
     if (guardado) {
@@ -112,106 +100,50 @@ window.addEventListener('load', function() {
 });
 
 // =========================================================
-// 2. LÓGICA DE NAVEGACIÓN
+//  LÓGICA DE NAVEGACIÓN Y SELECCIÓN (MANTENIDA)
 // =========================================================
 
 function mostrarBotonesUnidades() {
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    if (permisos && (permisos.includes("SOLO_MATERIALES") || permisos.includes("SUBOFICIAL_ELECTRICIDAD"))) {
+        return alert("⛔ Acceso denegado. Personal de otro sector.");
+    }
+    document.getElementById('homeScreen').style.display = 'none';
+    document.getElementById('sistema-gestion').style.display = 'block';
+    const grilla = document.getElementById('grilla-unidades');
+    grilla.style.display = 'grid';
+    document.getElementById('grilla-materiales').style.display = 'none';
+    document.getElementById('titulo-control').innerText = "AUTOMOTORES";
 
-const permisos = ENCARGADOS_DATA[usuarioActivo];
-
-if (permisos && (permisos.includes("SOLO_MATERIALES") || permisos.includes("SUBOFICIAL_ELECTRICIDAD"))) {
-
-return alert("⛔ Acceso denegado. Personal de otro sector.");
-
+    const panel = document.getElementById('panel-admin-vencimientos');
+    if (panel) {
+        panel.style.display = 'block';
+        grilla.parentNode.insertBefore(panel, grilla);
+        mostrarPanelAdmin();
+    }
 }
-
-document.getElementById('homeScreen').style.display = 'none';
-
-document.getElementById('sistema-gestion').style.display = 'block';
-
-
-// Mostramos la grilla de Autos
-
-const grilla = document.getElementById('grilla-unidades');
-
-grilla.style.display = 'grid';
-
-document.getElementById('grilla-materiales').style.display = 'none';
-
-document.getElementById('titulo-control').innerText = "AUTOMOTORES";
-
-
-
-// --- MOVER PANEL A AUTOMOTORES ---
-
-const panel = document.getElementById('panel-admin-vencimientos');
-
-if (panel) {
-
-panel.style.display = 'block'; // Lo hacemos visible
-
-// Lo insertamos justo antes de la grilla de botones
-
-grilla.parentNode.insertBefore(panel, grilla);
-
-// Configuramos el panel para MODO AUTOMOTOR (con VTV)
-
-mostrarPanelAdmin();
-
-}
-
-}
-
-
 
 function mostrarBotonesMateriales() {
+    const permisos = ENCARGADOS_DATA[usuarioActivo];
+    if (permisos && (permisos.includes("SOLO_AUTOMOTORES") || permisos.includes("SUBOFICIAL_ELECTRICIDAD"))) {
+        return alert("⛔ Acceso denegado. Personal de otro sector.");
+    }
+    document.getElementById('homeScreen').style.display = 'none';
+    document.getElementById('sistema-gestion').style.display = 'block';
+    const grilla = document.getElementById('grilla-materiales');
+    grilla.style.display = 'grid';
+    document.getElementById('grilla-unidades').style.display = 'none';
+    document.getElementById('titulo-control').innerText = "MATERIALES";
 
-const permisos = ENCARGADOS_DATA[usuarioActivo];
-
-if (permisos && (permisos.includes("SOLO_AUTOMOTORES") || permisos.includes("SUBOFICIAL_ELECTRICIDAD"))) {
-
-return alert("⛔ Acceso denegado. Personal de otro sector.");
-
+    const panel = document.getElementById('panel-admin-vencimientos');
+    if (panel) {
+        panel.style.display = 'block';
+        grilla.parentNode.insertBefore(panel, grilla);
+        mostrarPanelAdmin();
+    }
 }
 
-document.getElementById('homeScreen').style.display = 'none';
-
-document.getElementById('sistema-gestion').style.display = 'block';
-
-
-// Mostramos la grilla de Materiales
-
-const grilla = document.getElementById('grilla-materiales');
-
-grilla.style.display = 'grid';
-
-document.getElementById('grilla-unidades').style.display = 'none';
-
-document.getElementById('titulo-control').innerText = "MATERIALES";
-
-
-
-// --- MOVER PANEL A MATERIALES ---
-
-const panel = document.getElementById('panel-admin-vencimientos');
-
-if (panel) {
-
-panel.style.display = 'block'; // Lo hacemos visible
-
-// Lo insertamos justo antes de la grilla de botones
-
-grilla.parentNode.insertBefore(panel, grilla);
-
-// Configuramos el panel para MODO MATERIALES (Sin VTV)
-
-mostrarPanelAdmin();
-
-}
-
-}
-
-
+// === DEBAJO DE AQUÍ MANTÉN TUS FUNCIONES: seleccionarUnidad, mostrarPanelAdmin, generarGrillaUnidades, etc. ===
 
 function entrarElectricidad() {
 
@@ -3744,6 +3676,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];}
+
 
 
 

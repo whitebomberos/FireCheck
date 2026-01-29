@@ -1,240 +1,118 @@
-=========================================================
-
-// 1. CONFIGURACIÓN Y LÓGICA PRINCIPAL (AL PRINCIPIO)
-
-// =========================================================
-
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-
-
-// --- PERMISOS ---
-
+// --- PERMISOS (MANTENIDOS EXACTAMENTE) ---
 const ENCARGADOS_DATA = {
-
-// AUTOMOTORES (Ven sus unidades asignadas)
-
-"MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
-
-"ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
-
-"KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"],
-
-"FEDERICO MAISTERRENA": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"],
-
-
-
-// MATERIALES
-
-"MAURO MARTINEZ": ["SOLO_MATERIALES"],
-
-"CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
-
-"MARA CASTILLO": ["SOLO_MATERIALES"], // Ella tiene una excepción en el paso 2 para poder cargar
-
-"SANTIAGO LUGONES": ["SOLO_MATERIALES"],
-
-
-
-// SUPER USUARIO Y JEFES DE AREA (Con restricción de 30 días)
-
-"DANIEL FARINACCIO": ["SUPER_USUARIO"],
-
-"CRISTIAN BALEY": ["SOLO_MATERIALES"],
-
-"MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"],
-
-
-// ELECTRICIDAD
-
-"MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"]
-
+    "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
+    "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
+    "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"],
+    "FEDERICO MAISTERRENA": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"],
+    "MAURO MARTINEZ": ["SOLO_MATERIALES"],
+    "CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
+    "MARA CASTILLO": ["SOLO_MATERIALES"], 
+    "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
+    "DANIEL FARINACCIO": ["SUPER_USUARIO"],
+    "CRISTIAN BALEY": ["SOLO_MATERIALES"],
+    "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"],
+    "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"]
 };
-
-
 
 const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
 
-
-
 // VARIABLES
-
 let usuarioActivo = "";
-
 let unidadSeleccionada = "";
-
 let sectorActivo = "";
-
 let combustibleSeleccionado = "";
 
-
-
-// DATOS GUARDADOS
-
-let VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || [
-
-{ unidad: "UNIDAD 8", fecha: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
-
-{ unidad: "UNIDAD 13", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] }
-
-];
-
-let TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [
-
-{ tarea: "Engrase general de flota", fecha: new Date(Date.now() + 432000000).toISOString().split('T')[0] }
-
-];
-
-// Agregalo debajo de TAREAS_GENERALES_AUTO
-
+// DATOS GUARDADOS (CARGA SEGURA)
+let VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || [];
+let TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || [];
 let TAREAS_MATERIALES = JSON.parse(localStorage.getItem("db_tareas_mat")) || [];
-
-
-
 let DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || [];
 
-
-
-// --- FUNCIONES DE LOGIN (ESTO HACE QUE EL BOTÓN FUNCIONE) ---
-
-
+// =========================================================
+//  FUNCIONES DE LOGIN (ARREGLADAS)
+// =========================================================
 
 function iniciarValidacionFaceID() {
+    const nomElement = document.getElementById('nombre-login');
+    const apeElement = document.getElementById('apellido-login');
+    
+    if (!nomElement || !apeElement) return alert("Error: No se encuentran los campos en el HTML.");
 
-const nom = document.getElementById('nombre-login').value.trim();
+    const nom = nomElement.value.trim();
+    const ape = apeElement.value.trim();
 
-const ape = document.getElementById('apellido-login').value.trim();
+    if (!nom || !ape) {
+        return alert("Por favor, ingresá nombre y apellido.");
+    }
 
+    usuarioActivo = (nom + " " + ape).toUpperCase();
+    try { localStorage.setItem("usuarioBomberosConectado", usuarioActivo); } catch(e) {}
 
-if (!nom || !ape) {
-
-return alert("Por favor, ingresá nombre y apellido.");
-
-}
-
-
-// Guardamos el usuario en mayúsculas
-
-usuarioActivo = (nom + " " + ape).toUpperCase();
-
-
-// Guardar en memoria del teléfono
-
-try { localStorage.setItem("usuarioBomberosConectado", usuarioActivo); } catch(e) {}
-
-
-ingresarAlSistema();
-
+    ingresarAlSistema();
 }
 
 function ingresarAlSistema() {
-
-    // Ocultar login y mostrar menú
-
-    document.getElementById('loginScreen').style.display = 'none';
-
-    document.getElementById('homeScreen').style.display = 'block';
-
+    // 1. Cambiamos de pantalla (Esto es lo primero para que no parezca 'muerto')
+    const login = document.getElementById('loginScreen');
+    const home = document.getElementById('homeScreen');
     
+    if (login) login.style.display = 'none';
+    if (home) home.style.display = 'block';
 
-    // Mostrar nombre y foto (si existe)
-
+    // 2. Mostrar nombre de usuario
     const display = document.getElementById('user-display-name');
-
     if(display) {
-
         display.innerHTML = `<div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
-
             <span>${usuarioActivo}</span>
-
-            <img src="${usuarioActivo}.jpg" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:2px solid #fff; display:none;" onload="this.style.display='block'">
-
+            <img src="${usuarioActivo}.jpg" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:2px solid #fff;" onerror="this.style.display='none'">
         </div>`;
-
     }
 
-    
+    // 3. Intentar cargar grillas (Si fallan por falta de listas, el login NO se traba)
+    try { generarGrillaUnidades(); } catch(e) { console.warn("Grilla Unidades pendiente"); }
+    try { generarGrillaMateriales(); } catch(e) { console.warn("Grilla Materiales pendiente"); }
 
-    generarGrillaUnidades();
-
-    generarGrillaMateriales();
-
-
-
-    // Si es encargado de automotores, mostrar panel de carga
-
+    // 4. Lógica de Redirección automática
     const p = ENCARGADOS_DATA[usuarioActivo];
-
     if (p) {
-
         generarBotonesFiltroEncargado(p);
-
-        mostrarPanelAdmin(); 
-
+        
+        // Redirección directa según cargo
+        if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
+            mostrarBotonesUnidades();
+        } else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
+            mostrarBotonesMateriales();
+        }
     }
-
 }
 
-
-
+// Asegurarse de que esta función exista para que el botón de volver no de error
+function volverAlMenu() {
+    document.getElementById('sistema-gestion').style.display = 'none';
+    document.getElementById('sistema-electricidad').style.display = 'none';
+    document.getElementById('homeScreen').style.display = 'block';
+}
 
 function cerrarSesion() {
-
-if(confirm("¿Cerrar sesión?")) {
-
-// Borramos el usuario de la memoria
-
-try { localStorage.removeItem("usuarioBomberosConectado"); } catch(e) {}
-
-
-// Limpiamos los campos de texto para que no quede el nombre anterior
-
-const inputNombre = document.getElementById('nombre-login');
-
-const inputApellido = document.getElementById('apellido-login');
-
-if(inputNombre) inputNombre.value = "";
-
-if(inputApellido) inputApellido.value = "";
-
-
-
-// Recargamos la página para volver al inicio (Login)
-
-location.reload();
-
+    if(confirm("¿Cerrar sesión?")) {
+        try { localStorage.removeItem("usuarioBomberosConectado"); } catch(e) {}
+        location.reload();
+    }
 }
 
-}
-
-
-
-// INICIAR AL CARGAR (Si ya estaba logueado)
-
+// INICIAR AL CARGAR
 window.addEventListener('load', function() {
-
-try {
-
-const guardado = localStorage.getItem("usuarioBomberosConectado");
-
-if (guardado) {
-
-usuarioActivo = guardado;
-
-ingresarAlSistema();
-
-}
-
-} catch(e) {}
-
+    const guardado = localStorage.getItem("usuarioBomberosConectado");
+    if (guardado) {
+        usuarioActivo = guardado;
+        ingresarAlSistema();
+    }
 });
 
-
-
 // =========================================================
-
 // 2. LÓGICA DE NAVEGACIÓN
-
 // =========================================================
 
 function mostrarBotonesUnidades() {
@@ -3866,6 +3744,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];}
+
 
 
 

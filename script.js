@@ -127,59 +127,53 @@ ingresarAlSistema();
 
 }
 
-
-
 function ingresarAlSistema() {
 
-// 1. Ocultar login y mostrar menú principal
+    // Ocultar login y mostrar menú
 
-document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
 
-document.getElementById('homeScreen').style.display = 'block';
+    document.getElementById('homeScreen').style.display = 'block';
+
+    
+
+    // Mostrar nombre y foto (si existe)
+
+    const display = document.getElementById('user-display-name');
+
+    if(display) {
+
+        display.innerHTML = `<div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+
+            <span>${usuarioActivo}</span>
+
+            <img src="${usuarioActivo}.jpg" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:2px solid #fff; display:none;" onload="this.style.display='block'">
+
+        </div>`;
+
+    }
+
+    
+
+    generarGrillaUnidades();
+
+    generarGrillaMateriales();
 
 
-// 2. Mostrar nombre y foto
 
-const display = document.getElementById('user-display-name');
+    // Si es encargado de automotores, mostrar panel de carga
 
-if(display) {
+    const p = ENCARGADOS_DATA[usuarioActivo];
 
-display.innerHTML = `<div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+    if (p) {
 
-<span>${usuarioActivo}</span>
+        generarBotonesFiltroEncargado(p);
 
-<img src="${usuarioActivo}.jpg" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:2px solid #fff; display:none;" onload="this.style.display='block'">
+        mostrarPanelAdmin(); 
 
-</div>`;
-
-}
-
-
-// 3. Generar grillas (pero NO mostramos el panel de admin todavía)
-
-generarGrillaUnidades();
-
-generarGrillaMateriales();
-
-
-// Si hay permisos, habilitamos el botón de recarga del encargado, pero el panel grande se oculta
-
-const p = ENCARGADOS_DATA[usuarioActivo];
-
-if (p) {
-
-generarBotonesFiltroEncargado(p);
-
-// Ocultamos el panel por si quedó abierto de antes
-
-const panel = document.getElementById("panel-admin-vencimientos");
-
-if(panel) panel.style.display = 'none';
-
-}
+    }
 
 }
-
 
 
 
@@ -3872,6 +3866,7 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];}
+
 
 
 

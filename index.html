@@ -33,7 +33,7 @@
         
         h2 { font-size: 20px; margin-bottom: 20px; border-left: 5px solid #b80000; padding-left: 10px; text-transform: uppercase; }
         
-        /* SECTORES */
+        /* SECTORES (MENÚ PRINCIPAL) */
         .sectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
         .sector { height: 160px; background: #1a1a1a; border-radius: 15px; border: 1px solid #333; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; cursor: pointer; position: relative; overflow: hidden; transition: transform 0.2s; }
         .sector:active { transform: scale(0.98); }
@@ -120,7 +120,8 @@
     <div id="sistema-gestion">
         <div class="top-bar">
             <h2 id="titulo-control" style="margin:0;">CONTROL</h2>
-            <div id="selector-unidades-encargado"></div> <button class="btn-volver" onclick="volverAlMenu()">VOLVER</button>
+            <div id="selector-unidades-encargado"></div> 
+            <button class="btn-volver" onclick="volverAlMenu()">VOLVER</button>
         </div>
 
         <div id="panel-admin-vencimientos" class="panel-carga" style="display:none;"></div>
@@ -167,37 +168,8 @@
     </div>
 
     <script>
-        // 1. CONFIGURACIÓN Y PERMISOS
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
-
-        // BASE DE DATOS DE ITEMS (ESTO FALTABA Y HACÍA QUE NO FUNCIONARA)
-        const ITEMS_AUTO_DEFAULT = [
-            { item: "Nivel de Aceite", tipo: "normal" }, { item: "Nivel de Agua", tipo: "normal" },
-            { item: "Luces", tipo: "normal" }, { item: "Sirena", tipo: "normal" },
-            { item: "Combustible", tipo: "combustible" }
-        ];
-        const ITEMS_MAT_DEFAULT = [
-            { item: "Inventario General", tipo: "normal", cant: "1" }, 
-            { item: "Estado Herramientas", tipo: "normal", cant: "5" }
-        ];
-
-        // Definimos las variables para que el código no se rompa
-        const CONTROLES_U1_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U2_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U3_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U4_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U5_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U6_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U8_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U9_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U10_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U11_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U12_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U13_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U15_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U16_AUTO = ITEMS_AUTO_DEFAULT;
-
-        const CONTROLES_U2_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U3_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U6_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U8_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U9_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U10_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U11_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U12_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U13_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U15_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U16_MAT = ITEMS_MAT_DEFAULT; 
-        const CONTROLES_CENTRAL = ITEMS_MAT_DEFAULT; const CONTROLES_DESTACAMENTO = ITEMS_MAT_DEFAULT;
-
+// --- PERMISOS ---
         const ENCARGADOS_DATA = {
             "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
             "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
@@ -216,9 +188,7 @@
         const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
         let usuarioActivo = "";
         let unidadSeleccionada = "";
-        let sectorActivo = "";
         
-        // Carga de Datos Segura
         let VTV_DATA = [], TAREAS_GENERALES_AUTO = [], TAREAS_MATERIALES = [], DB_ELECTRICIDAD = [];
         try { VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || []; } catch(e) {}
         try { TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || []; } catch(e) {}
@@ -229,7 +199,6 @@
         function iniciarValidacionFaceID() {
             const nom = document.getElementById('nombre-login').value.trim();
             const ape = document.getElementById('apellido-login').value.trim();
-            
             if (!nom || !ape) return alert("Por favor, ingresá nombre y apellido.");
             
             usuarioActivo = (nom + " " + ape).toUpperCase(); 
@@ -245,7 +214,6 @@
             generarGrillaUnidades();
             generarGrillaMateriales();
 
-            // REDIRECCIÓN AUTOMÁTICA
             const p = ENCARGADOS_DATA[usuarioActivo];
             if (p) {
                 if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
@@ -267,7 +235,6 @@
             document.getElementById('sistema-gestion').style.display = 'none';
             document.getElementById('sistema-electricidad').style.display = 'none';
             document.getElementById('homeScreen').style.display = 'block';
-            // Ocultar panel de carga al volver
             const panel = document.getElementById('panel-admin-vencimientos');
             if(panel) panel.style.display = 'none';
         }
@@ -276,16 +243,14 @@
         function mostrarBotonesUnidades() {
             const p = ENCARGADOS_DATA[usuarioActivo];
             if (p && (p.includes("SOLO_MATERIALES") || p.includes("SUBOFICIAL_ELECTRICIDAD")) && !p.includes("SUPER_USUARIO")) {
-                return alert("⛔ Acceso denegado: Sos de Materiales/Electricidad.");
+                return alert("⛔ Acceso denegado.");
             }
-
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('sistema-gestion').style.display = 'block';
             document.getElementById('grilla-unidades').style.display = 'grid';
             document.getElementById('grilla-materiales').style.display = 'none';
             document.getElementById('titulo-control').innerText = "AUTOMOTORES";
             
-            // Movemos el panel adentro
             const panel = document.getElementById('panel-admin-vencimientos');
             const target = document.getElementById('grilla-unidades');
             if(panel && target) {
@@ -298,16 +263,14 @@
         function mostrarBotonesMateriales() {
             const p = ENCARGADOS_DATA[usuarioActivo];
             if (p && (p.includes("SOLO_AUTOMOTORES") || p.includes("SUBOFICIAL_ELECTRICIDAD")) && !p.includes("SUPER_USUARIO")) {
-                return alert("⛔ Acceso denegado: Sos de Automotores/Electricidad.");
+                return alert("⛔ Acceso denegado.");
             }
-
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('sistema-gestion').style.display = 'block';
             document.getElementById('grilla-materiales').style.display = 'grid';
             document.getElementById('grilla-unidades').style.display = 'none';
             document.getElementById('titulo-control').innerText = "MATERIALES";
 
-            // Movemos el panel adentro
             const panel = document.getElementById('panel-admin-vencimientos');
             const target = document.getElementById('grilla-materiales');
             if(panel && target) {
@@ -322,7 +285,6 @@
             if (!p || (!p.includes("SUBOFICIAL_ELECTRICIDAD") && !p.includes("SUPER_USUARIO"))) {
                 return alert("⛔ Acceso denegado.");
             }
-
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('sistema-electricidad').style.display = 'block';
             
@@ -359,7 +321,6 @@
             const select = document.getElementById("admin-unidad");
             const boxTipo = document.getElementById("admin-tipo");
 
-            // Configurar según el área
             if (esMat && !esSuper) {
                 boxTipo.value = "TAREA"; boxTipo.style.display = "none";
                 ["MAT CENTRAL", "MAT DESTACAMENTO"].forEach(u => select.add(new Option(u, u)));
@@ -392,14 +353,14 @@
             const unidad = document.getElementById("admin-unidad").value;
             const desc = document.getElementById("admin-tarea-desc").value;
 
-            if(!fecha || !unidad) return alert("Faltan datos (Fecha o Unidad).");
+            if(!fecha || !unidad) return alert("Faltan datos.");
 
             if (tipo === "VTV") {
                 const idx = VTV_DATA.findIndex(v => v.unidad === unidad);
                 if (idx >= 0) VTV_DATA[idx].fecha = fecha; else VTV_DATA.push({unidad, fecha});
                 localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
             } else {
-                if(!desc) return alert("Escribí la tarea a realizar.");
+                if(!desc) return alert("Escribí la tarea.");
                 const item = { unidad, tarea: desc, fecha, creado: usuarioActivo };
                 if (esMat) {
                     TAREAS_MATERIALES.push(item);
@@ -429,7 +390,7 @@
             }
         }
 
-        // --- UTILS DE GENERACIÓN ---
+        // --- UTILS ---
         function generarGrillaUnidades() {
             const c = document.getElementById('grilla-unidades');
             c.innerHTML = "";
@@ -461,17 +422,14 @@
             btn.classList.add('active');
 
             const p = ENCARGADOS_DATA[usuarioActivo];
-            // Verificar si es jefe para mostrar historial en vez de control (Excepción Mara)
             if (usuarioActivo !== "MARA CASTILLO") {
                 if (p && (p.includes("SOLO_AUTOMOTORES") || p.includes("SOLO_MATERIALES") || p.includes("SUPER_USUARIO"))) {
-                    // Mostrar historial (Simulado aquí)
                     document.getElementById('panel-consulta-encargado').style.display = 'block';
                     document.getElementById('cuerpo-consulta-encargado').innerHTML = `<tr><td colspan="4" style="padding:20px; text-align:center;">Viendo historial de ${unidadSeleccionada}</td></tr>`;
                     return;
                 }
             }
 
-            // Cargar controles (Bombero)
             document.getElementById('titulo-control').innerText = unidadSeleccionada;
             document.getElementById('contenedor-km').style.display = (tipo === 'AUTO') ? 'block' : 'none';
             document.getElementById('btn-nube').style.display = 'block';
@@ -479,17 +437,15 @@
             const cont = document.getElementById('campos-control');
             cont.innerHTML = "";
 
-            // SELECCIÓN DE LISTAS (AHORA SÍ FUNCIONA PORQUE LAS DEFINIMOS ARRIBA)
             let lista = [];
             if (tipo === 'AUTO') {
                 if(num === 1) lista = CONTROLES_U1_AUTO;
                 else if(num === 2) lista = CONTROLES_U2_AUTO;
-                else lista = CONTROLES_U1_AUTO; // Fallback
+                else lista = CONTROLES_U1_AUTO;
             } else {
-                lista = CONTROLES_CENTRAL; // Fallback
+                lista = CONTROLES_CENTRAL;
             }
 
-            // GENERADOR DE ITEMS
             lista.forEach((c, idx) => {
                 if (c.tipo === "combustible") {
                     cont.innerHTML += `<div class="check-item-container"><div class="check-item-row"><span>${c.item}</span><div class="fuel-options"><div class="fuel-btn">1/4</div><div class="fuel-btn">1/2</div><div class="fuel-btn">LLENO</div></div></div></div>`;
@@ -525,12 +481,12 @@
             setTimeout(() => { alert("Datos enviados exitosamente."); location.reload(); }, 1500);
         }
 
-        // AUTO-LOGIN AL CARGAR PAGINA
+        // AUTO-LOGIN AL CARGAR
         window.onload = function() {
             const saved = localStorage.getItem("usuarioBomberosConectado");
             if (saved) { usuarioActivo = saved; ingresarAlSistema(); }
         }
-
+    
 
 const CONTROLES_U1_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
@@ -2833,3 +2789,4 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 </script>
 </body>
 </html>
+

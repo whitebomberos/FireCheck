@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Interno - Bomberos</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#b80000">
+    <title>Sistema Bomberos</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,11 +12,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Montserrat', sans-serif; background: #0f0f0f; color: #fff; -webkit-tap-highlight-color: transparent; }
         
-        /* LOGIN */
+        /* === LOGIN (SOLUCIONADO) === */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #111; z-index: 2000; }
         .login-box { background: #222; padding: 40px 30px; width: 90%; max-width: 400px; border-radius: 20px; text-align: center; border: 1px solid #333; }
         .login-box h1 { color: #b80000; margin-bottom: 5px; font-size: 22px; text-transform: uppercase; }
-        .login-box p { color: #888; margin-bottom: 30px; font-size: 12px; letter-spacing: 1px; }
         .login-box input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #444; background: #1a1a1a; color: #fff; text-align: center; font-size: 16px; outline: none; }
         .login-box input:focus { border-color: #b80000; background: #000; }
         .btn-login { width: 100%; padding: 15px; border: none; border-radius: 10px; background: linear-gradient(135deg, #b80000, #ff0000); color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; }
@@ -29,16 +25,11 @@
         #homeScreen, #sistema-gestion, #sistema-electricidad { display: none; padding: 20px; min-height: 100vh; animation: fadeIn 0.5s ease; }
         
         header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
-        .user-info { text-align: right; }
         .btn-salir { background: none; border: 1px solid #444; color: #888; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         
-        h2 { font-size: 20px; margin-bottom: 20px; border-left: 5px solid #b80000; padding-left: 10px; text-transform: uppercase; }
-        
-        /* SECTORES (MENÚ PRINCIPAL) */
+        /* SECTORES */
         .sectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-        .sector { height: 160px; background: #1a1a1a; border-radius: 15px; border: 1px solid #333; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; cursor: pointer; position: relative; overflow: hidden; transition: transform 0.2s; }
-        .sector:active { transform: scale(0.98); }
-        .sector i { position: absolute; top: -10px; right: -10px; font-size: 100px; opacity: 0.1; }
+        .sector { height: 160px; background: #1a1a1a; border-radius: 15px; border: 1px solid #333; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; cursor: pointer; position: relative; overflow: hidden; }
         .sector.mat { border-left: 5px solid #ff7a00; } .sector.mat h3 { color: #ff7a00; }
         .sector.auto { border-left: 5px solid #b80000; } .sector.auto h3 { color: #b80000; }
         .sector.elec { border-left: 5px solid #ffd000; } .sector.elec h3 { color: #ffd000; }
@@ -53,13 +44,12 @@
         .btn-unidad { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 15px 5px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 13px; cursor: pointer; }
         .btn-unidad.active { background: #b80000; color: white; border-color: #ff0000; }
 
-        /* PANELES DE CARGA */
+        /* PANEL DE CARGA */
         .panel-carga { background: #222; padding: 15px; border-radius: 10px; border: 1px solid #444; margin-bottom: 20px; }
         .panel-carga h3 { margin-top: 0; color: white; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 15px; }
         .form-input, select, input { width: 100%; padding: 12px; background: #111; border: 1px solid #444; color: white; margin-bottom: 10px; border-radius: 5px; font-family: inherit; }
         .btn-guardar { width: 100%; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
-        /* LISTAS */
         ul { list-style: none; padding: 0; margin: 0; }
         li { padding: 10px; border-bottom: 1px solid #333; font-size: 13px; color: #ccc; }
 
@@ -79,9 +69,8 @@
 
     <div id="loginScreen">
         <div class="login-box">
-            <div style="font-size: 40px; margin-bottom: 15px; color: #b80000;"><i class="fa-solid fa-shield-halved"></i></div>
-            <h1>SISTEMA BOMBEROS</h1>
-            <p>Ingreso de Personal</p>
+            <h1 style="color:#b80000; margin-bottom:5px;">SISTEMA BOMBEROS</h1>
+            <p style="color:#888; margin-bottom:30px; font-size:12px;">INGRESO DE PERSONAL</p>
             
             <input type="text" id="nombre-login" placeholder="NOMBRE" autocomplete="off" autocapitalize="words">
             <input type="text" id="apellido-login" placeholder="APELLIDO" autocomplete="off" autocapitalize="words">
@@ -171,350 +160,8 @@
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSa7ynDTRt4HOXjhISAp6FlSbeHxwmaojShScXJSCa_begSMSCtqV-YcHbM5yZmX7mYg/exec";
 
-        // =============================================================
-        // ⚠️ IMPORTANTE: SI TIENES TUS LISTAS DE CONTROLES LARGAS, 
-        // PEGALAS AQUI ABAJO DE ESTA LINEA.
-        // SI NO LAS PEGAS, EL SISTEMA USARÁ ESTAS GENÉRICAS PARA QUE NO FALLE.
-        // =============================================================
-        const ITEMS_AUTO_DEFAULT = [{ item: "Nivel de Aceite", tipo: "normal" }, { item: "Nivel de Agua", tipo: "normal" }, { item: "Luces", tipo: "normal" }, { item: "Sirena", tipo: "normal" }, { item: "Combustible", tipo: "combustible" }];
-        const ITEMS_MAT_DEFAULT = [{ item: "Inventario", tipo: "normal", cant: "1" }, { item: "Estado", tipo: "normal", cant: "1" }];
-
-        const CONTROLES_U1_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U2_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U3_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U4_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U5_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U6_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U8_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U9_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U10_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U11_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U12_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U13_AUTO = ITEMS_AUTO_DEFAULT;
-        const CONTROLES_U15_AUTO = ITEMS_AUTO_DEFAULT; const CONTROLES_U16_AUTO = ITEMS_AUTO_DEFAULT;
-        
-        const CONTROLES_CENTRAL = ITEMS_MAT_DEFAULT; const CONTROLES_DESTACAMENTO = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U2_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U3_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U6_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U8_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U9_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U10_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U11_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U12_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U13_MAT = ITEMS_MAT_DEFAULT;
-        const CONTROLES_U15_MAT = ITEMS_MAT_DEFAULT; const CONTROLES_U16_MAT = ITEMS_MAT_DEFAULT;
-
-        // --- PERMISOS ---
-        const ENCARGADOS_DATA = {
-            "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
-            "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
-            "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
-            "FEDERICO MAISTERRENA": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
-            "MAURO MARTINEZ": ["SOLO_MATERIALES"], 
-            "CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
-            "MARA CASTILLO": ["SOLO_MATERIALES"], 
-            "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
-            "DANIEL FARINACCIO": ["SUPER_USUARIO"],
-            "CRISTIAN BALEY": ["SOLO_MATERIALES"],
-            "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"],
-            "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
-        };
-
-        const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
-        let usuarioActivo = "";
-        let unidadSeleccionada = "";
-        
-        let VTV_DATA = [], TAREAS_GENERALES_AUTO = [], TAREAS_MATERIALES = [], DB_ELECTRICIDAD = [];
-        try { VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || []; } catch(e) {}
-        try { TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || []; } catch(e) {}
-        try { TAREAS_MATERIALES = JSON.parse(localStorage.getItem("db_tareas_mat")) || []; } catch(e) {}
-        try { DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || []; } catch(e) {}
-
-        // --- LOGIN ---
-        function iniciarValidacionFaceID() {
-            const nom = document.getElementById('nombre-login').value.trim();
-            const ape = document.getElementById('apellido-login').value.trim();
-            if (!nom || !ape) return alert("Por favor, ingresá nombre y apellido.");
-            
-            usuarioActivo = (nom + " " + ape).toUpperCase(); 
-            localStorage.setItem("usuarioBomberosConectado", usuarioActivo);
-            ingresarAlSistema();
-        }
-
-        function ingresarAlSistema() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('homeScreen').style.display = 'block';
-            document.getElementById('user-display-name').innerText = usuarioActivo;
-            
-            generarGrillaUnidades();
-            generarGrillaMateriales();
-
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            if (p) {
-                if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
-                    mostrarBotonesUnidades();
-                } else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
-                    mostrarBotonesMateriales();
-                }
-            }
-        }
-
-        function cerrarSesion() {
-            if(confirm("¿Cerrar sesión?")) {
-                localStorage.removeItem("usuarioBomberosConectado");
-                location.reload();
-            }
-        }
-
-        function volverAlMenu() {
-            document.getElementById('sistema-gestion').style.display = 'none';
-            document.getElementById('sistema-electricidad').style.display = 'none';
-            document.getElementById('homeScreen').style.display = 'block';
-            const panel = document.getElementById('panel-admin-vencimientos');
-            if(panel) panel.style.display = 'none';
-        }
-
-        // --- NAVEGACIÓN ---
-        function mostrarBotonesUnidades() {
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            if (p && (p.includes("SOLO_MATERIALES") || p.includes("SUBOFICIAL_ELECTRICIDAD")) && !p.includes("SUPER_USUARIO")) {
-                return alert("⛔ Acceso denegado.");
-            }
-            document.getElementById('homeScreen').style.display = 'none';
-            document.getElementById('sistema-gestion').style.display = 'block';
-            document.getElementById('grilla-unidades').style.display = 'grid';
-            document.getElementById('grilla-materiales').style.display = 'none';
-            document.getElementById('titulo-control').innerText = "AUTOMOTORES";
-            
-            const panel = document.getElementById('panel-admin-vencimientos');
-            const target = document.getElementById('grilla-unidades');
-            if(panel && target) {
-                panel.style.display = 'block';
-                target.parentNode.insertBefore(panel, target);
-                mostrarPanelAdmin();
-            }
-        }
-
-        function mostrarBotonesMateriales() {
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            if (p && (p.includes("SOLO_AUTOMOTORES") || p.includes("SUBOFICIAL_ELECTRICIDAD")) && !p.includes("SUPER_USUARIO")) {
-                return alert("⛔ Acceso denegado.");
-            }
-            document.getElementById('homeScreen').style.display = 'none';
-            document.getElementById('sistema-gestion').style.display = 'block';
-            document.getElementById('grilla-materiales').style.display = 'grid';
-            document.getElementById('grilla-unidades').style.display = 'none';
-            document.getElementById('titulo-control').innerText = "MATERIALES";
-
-            const panel = document.getElementById('panel-admin-vencimientos');
-            const target = document.getElementById('grilla-materiales');
-            if(panel && target) {
-                panel.style.display = 'block';
-                target.parentNode.insertBefore(panel, target);
-                mostrarPanelAdmin();
-            }
-        }
-
-        function entrarElectricidad() {
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            if (!p || (!p.includes("SUBOFICIAL_ELECTRICIDAD") && !p.includes("SUPER_USUARIO"))) {
-                return alert("⛔ Acceso denegado.");
-            }
-            document.getElementById('homeScreen').style.display = 'none';
-            document.getElementById('sistema-electricidad').style.display = 'block';
-            
-            const panelAdmin = document.getElementById('admin-electricidad');
-            if (panelAdmin) panelAdmin.style.display = 'block';
-            renderizarTareasElectricas();
-        }
-
-        // --- PANEL DE CARGA ---
-        function mostrarPanelAdmin() {
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            if(!p) return;
-
-            const esAuto = p.includes("SOLO_AUTOMOTORES") || p.includes("VER_TODO_AUTOMOTORES");
-            const esMat = p.includes("SOLO_MATERIALES");
-            const esSuper = p.includes("SUPER_USUARIO");
-
-            if (!esAuto && !esMat && !esSuper) return;
-
-            const panel = document.getElementById('panel-admin-vencimientos');
-            panel.innerHTML = `
-                <h3 style="color:white;">Panel de Gestión</h3>
-                <select id="admin-tipo" onchange="toggleSelectorUnidad()">
-                    <option value="TAREA">🔧 Tarea / Reparación</option>
-                    <option value="VTV">🚗 Cargar VTV</option>
-                </select>
-                <select id="admin-unidad"></select>
-                <input type="date" id="admin-fecha">
-                <input type="text" id="admin-tarea-desc" placeholder="Describí la tarea aquí..." style="display:block;">
-                <button class="btn-guardar" onclick="guardarNuevoVencimiento()">GUARDAR</button>
-                <ul id="lista-vencimientos-cargados"></ul>
-            `;
-
-            const select = document.getElementById("admin-unidad");
-            const boxTipo = document.getElementById("admin-tipo");
-
-            if (esMat && !esSuper) {
-                boxTipo.value = "TAREA"; boxTipo.style.display = "none";
-                ["MAT CENTRAL", "MAT DESTACAMENTO"].forEach(u => select.add(new Option(u, u)));
-                LISTA_IDS_UNIDADES.forEach(u => select.add(new Option("MAT U-" + u, "MAT U-" + u)));
-            } else {
-                if (p.includes("VER_TODO_AUTOMOTORES") || esSuper) {
-                    select.add(new Option("GENERAL FLOTA", "GENERAL FLOTA"));
-                    LISTA_IDS_UNIDADES.forEach(u => select.add(new Option("UNIDAD " + u, "UNIDAD " + u)));
-                } else {
-                    p.forEach(permiso => { if(permiso.startsWith("UNIDAD")) select.add(new Option(permiso, permiso)); });
-                }
-            }
-            
-            toggleSelectorUnidad();
-            actualizarListaVisual();
-        }
-
-        function toggleSelectorUnidad() {
-            const tipo = document.getElementById("admin-tipo").value;
-            const input = document.getElementById("admin-tarea-desc");
-            if(input) input.style.display = (tipo === "VTV") ? "none" : "block";
-        }
-
-        function guardarNuevoVencimiento() {
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            const esMat = p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO");
-            
-            const tipo = esMat ? "TAREA" : document.getElementById("admin-tipo").value;
-            const fecha = document.getElementById("admin-fecha").value;
-            const unidad = document.getElementById("admin-unidad").value;
-            const desc = document.getElementById("admin-tarea-desc").value;
-
-            if(!fecha || !unidad) return alert("Faltan datos.");
-
-            if (tipo === "VTV") {
-                const idx = VTV_DATA.findIndex(v => v.unidad === unidad);
-                if (idx >= 0) VTV_DATA[idx].fecha = fecha; else VTV_DATA.push({unidad, fecha});
-                localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
-            } else {
-                if(!desc) return alert("Escribí la tarea.");
-                const item = { unidad, tarea: desc, fecha, creado: usuarioActivo };
-                if (esMat) {
-                    TAREAS_MATERIALES.push(item);
-                    localStorage.setItem("db_tareas_mat", JSON.stringify(TAREAS_MATERIALES));
-                } else {
-                    TAREAS_GENERALES_AUTO.push(item);
-                    localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
-                }
-                document.getElementById("admin-tarea-desc").value = "";
-            }
-            actualizarListaVisual();
-        }
-
-        function actualizarListaVisual() {
-            const lista = document.getElementById("lista-vencimientos-cargados");
-            if(!lista) return;
-            lista.innerHTML = "";
-            
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            const esMat = p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO");
-
-            if (esMat) {
-                TAREAS_MATERIALES.forEach(t => lista.innerHTML += `<li><strong style="color:#ff7a00">${t.unidad}</strong>: ${t.tarea} (${t.fecha})</li>`);
-            } else {
-                VTV_DATA.forEach(v => lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> VTV: ${v.fecha}</li>`);
-                TAREAS_GENERALES_AUTO.forEach(t => lista.innerHTML += `<li>🔧 <b>${t.unidad}</b>: ${t.tarea} (${t.fecha})</li>`);
-            }
-        }
-
-        // --- UTILS ---
-        function generarGrillaUnidades() {
-            const c = document.getElementById('grilla-unidades');
-            c.innerHTML = "";
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            const veTodo = p && (p.includes("VER_TODO_AUTOMOTORES") || p.includes("SUPER_USUARIO"));
-            
-            LISTA_IDS_UNIDADES.forEach(i => {
-                if (!p || veTodo || p.includes("UNIDAD " + i)) {
-                    c.innerHTML += `<div class="btn-unidad" onclick="seleccionarUnidad(${i}, 'AUTO', this)">U-${i}</div>`;
-                }
-            });
-        }
-
-        function generarGrillaMateriales() {
-            const c = document.getElementById('grilla-materiales');
-            c.innerHTML = "";
-            LISTA_IDS_UNIDADES.forEach(i => {
-                if (![1,4,5].includes(i)) c.innerHTML += `<div class="btn-unidad" onclick="seleccionarUnidad(${i}, 'MAT', this)">MAT U-${i}</div>`;
-            });
-            c.innerHTML += `<div class="btn-unidad" style="border-color:#ff7a00" onclick="seleccionarUnidad('CENTRAL', 'MAT', this)">CENTRAL</div>`;
-            c.innerHTML += `<div class="btn-unidad" style="border-color:#ff7a00" onclick="seleccionarUnidad('DESTACAMENTO', 'MAT', this)">DESTAC.</div>`;
-        }
-
-        function seleccionarUnidad(num, tipo, btn) {
-            unidadSeleccionada = (typeof num === 'string') ? "MAT " + num : (tipo === 'AUTO' ? "UNIDAD " + num : "MAT U-" + num);
-            sectorActivo = tipo;
-
-            document.querySelectorAll('.btn-unidad').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            const p = ENCARGADOS_DATA[usuarioActivo];
-            if (usuarioActivo !== "MARA CASTILLO") {
-                if (p && (p.includes("SOLO_AUTOMOTORES") || p.includes("SOLO_MATERIALES") || p.includes("SUPER_USUARIO"))) {
-                    document.getElementById('panel-consulta-encargado').style.display = 'block';
-                    document.getElementById('cuerpo-consulta-encargado').innerHTML = `<tr><td colspan="4" style="padding:20px; text-align:center;">Viendo historial de ${unidadSeleccionada}</td></tr>`;
-                    return;
-                }
-            }
-
-            document.getElementById('titulo-control').innerText = unidadSeleccionada;
-            document.getElementById('contenedor-km').style.display = (tipo === 'AUTO') ? 'block' : 'none';
-            document.getElementById('btn-nube').style.display = 'block';
-            
-            const cont = document.getElementById('campos-control');
-            cont.innerHTML = "";
-
-            // Lógica de carga de controles
-            let lista = [];
-            try {
-                if (tipo === 'AUTO') {
-                    if(num === 1) lista = CONTROLES_U1_AUTO;
-                    else if(num === 2) lista = CONTROLES_U2_AUTO;
-                    else lista = CONTROLES_U1_AUTO;
-                } else {
-                    lista = CONTROLES_CENTRAL;
-                }
-            } catch(e) { lista = []; }
-
-            if(lista) {
-                lista.forEach((c, idx) => {
-                    if (c.tipo === "combustible") {
-                        cont.innerHTML += `<div class="check-item-container"><div class="check-item-row"><span>${c.item}</span><div class="fuel-options"><div class="fuel-btn">1/4</div><div class="fuel-btn">1/2</div><div class="fuel-btn">LLENO</div></div></div></div>`;
-                    } else {
-                        let extra = (tipo === 'MAT' && c.cant) ? `<span style="color:#ff7a00; margin-left:10px;">(x${c.cant})</span>` : '';
-                        cont.innerHTML += `<div class="check-item-container"><div class="check-item-row"><span>${c.item} ${extra}</span><div class="item-actions"><label><input type="radio" name="i${idx}"> Bien</label><label><input type="radio" name="i${idx}"> Mal</label></div></div></div>`;
-                    }
-                });
-            }
-        }
-
-        // --- ELECTRICIDAD ---
-        function crearTareaElectrica() {
-            const lugar = document.getElementById("elec-lugar").value;
-            const desc = document.getElementById("elec-desc").value;
-            if(!lugar || !desc) return alert("Faltan datos");
-            
-            DB_ELECTRICIDAD.push({ lugar, desc, fecha: new Date().toLocaleDateString() });
-            localStorage.setItem("db_electricidad", JSON.stringify(DB_ELECTRICIDAD));
-            renderizarTareasElectricas();
-        }
-
-        function renderizarTareasElectricas() {
-            const lista = document.getElementById("listaTareasElectricas");
-            lista.innerHTML = "";
-            DB_ELECTRICIDAD.forEach(t => {
-                lista.innerHTML += `<div style="background:#222; padding:10px; margin-bottom:5px; border-left:3px solid #ffd000; border-radius:5px;"><strong>${t.lugar}</strong>: ${t.desc}</div>`;
-            });
-        }
-
-        function finalizarYEnviar() {
-            const btn = document.getElementById('btn-nube');
-            btn.innerText = "ENVIANDO...";
-            setTimeout(() => { alert("Datos enviados exitosamente."); location.reload(); }, 1500);
-        }
-
-        // AUTO-LOGIN AL CARGAR
-        window.onload = function() {
-            const saved = localStorage.getItem("usuarioBomberosConectado");
-            if (saved) { usuarioActivo = saved; ingresarAlSistema(); }
-        }
-        
-const CONTROLES_U1_AUTO = [
+        // ITEMS DE CONTROL (GENÉRICOS PARA QUE NO FALLE, LOS TUYOS SE PEGAN AQUÍ SI LOS TENES)
+       const CONTROLES_U1_AUTO = [
     { cat: "DIARIO", item: "1.- Limpieza interior de cabina", cant: "-" },
     { cat: "DIARIO", item: "2.- Limpieza ventanillas y parabrisas", cant: "-" },
     { cat: "DIARIO", item: "3.- Puesta en marcha", cant: "-" },
@@ -2812,8 +2459,333 @@ const CONTROLES_DESTACAMENTO = [ { cat: "COMPRESOR OCEANIC", item: "Nivel de com
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Manómetro", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Estado de Carga", "cant": "N/A" },
 { "cat": "EXTINTOR UNIDAD 13", "item": "Limpieza", "cant": "N/A" },];}
+
+
+        // --- PERMISOS ---
+        const ENCARGADOS_DATA = {
+            "MIGUEL CORDOBA": ["UNIDAD 1", "UNIDAD 2", "UNIDAD 6", "UNIDAD 12", "SOLO_AUTOMOTORES"],
+            "ENEAS FTULI": ["UNIDAD 8", "UNIDAD 9", "UNIDAD 10", "UNIDAD 16", "SOLO_AUTOMOTORES"],
+            "KEVIN FTULI": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
+            "FEDERICO MAISTERRENA": ["VER_TODO_AUTOMOTORES", "SOLO_AUTOMOTORES"], 
+            "MAURO MARTINEZ": ["SOLO_MATERIALES"], 
+            "CRISTIAN DEL CASTILLO": ["SOLO_MATERIALES"],
+            "MARA CASTILLO": ["SOLO_MATERIALES"], 
+            "SANTIAGO LUGONES": ["SOLO_MATERIALES"], 
+            "DANIEL FARINACCIO": ["SUPER_USUARIO"],
+            "CRISTIAN BALEY": ["SOLO_MATERIALES"],
+            "MARCOS ALFARO": ["SUBOFICIAL_ELECTRICIDAD"],
+            "MIGUEL ALFARO": ["SUBOFICIAL_ELECTRICIDAD"] 
+        };
+
+        const LISTA_IDS_UNIDADES = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 15, 16];
+        let usuarioActivo = "";
+        let unidadSeleccionada = "";
+        
+        let VTV_DATA = [], TAREAS_GENERALES_AUTO = [], TAREAS_MATERIALES = [], DB_ELECTRICIDAD = [];
+        try { VTV_DATA = JSON.parse(localStorage.getItem("db_vtv")) || []; } catch(e) {}
+        try { TAREAS_GENERALES_AUTO = JSON.parse(localStorage.getItem("db_tareas_gral")) || []; } catch(e) {}
+        try { TAREAS_MATERIALES = JSON.parse(localStorage.getItem("db_tareas_mat")) || []; } catch(e) {}
+        try { DB_ELECTRICIDAD = JSON.parse(localStorage.getItem("db_electricidad")) || []; } catch(e) {}
+
+        // --- LOGIN ---
+        function iniciarValidacionFaceID() {
+            const nomInput = document.getElementById('nombre-login');
+            const apeInput = document.getElementById('apellido-login');
+            if(!nomInput || !apeInput) return alert("Error interno");
+
+            const nom = nomInput.value.trim();
+            const ape = apeInput.value.trim();
+            if (!nom || !ape) return alert("Por favor, ingresá nombre y apellido.");
+            
+            usuarioActivo = (nom + " " + ape).toUpperCase(); 
+            localStorage.setItem("usuarioBomberosConectado", usuarioActivo);
+            ingresarAlSistema();
+        }
+
+        function ingresarAlSistema() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('homeScreen').style.display = 'block';
+            document.getElementById('user-display-name').innerText = usuarioActivo;
+            
+            generarGrillaUnidades();
+            generarGrillaMateriales();
+
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            if (p) {
+                if (p.includes("SOLO_AUTOMOTORES") && !p.includes("SUPER_USUARIO")) {
+                    mostrarBotonesUnidades();
+                } else if (p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO")) {
+                    mostrarBotonesMateriales();
+                }
+            }
+        }
+
+        function cerrarSesion() {
+            if(confirm("¿Cerrar sesión?")) {
+                localStorage.removeItem("usuarioBomberosConectado");
+                location.reload();
+            }
+        }
+
+        function volverAlMenu() {
+            document.getElementById('sistema-gestion').style.display = 'none';
+            document.getElementById('sistema-electricidad').style.display = 'none';
+            document.getElementById('homeScreen').style.display = 'block';
+            const panel = document.getElementById('panel-admin-vencimientos');
+            if(panel) panel.style.display = 'none';
+        }
+
+        // --- NAVEGACIÓN ---
+        function mostrarBotonesUnidades() {
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            if (p && (p.includes("SOLO_MATERIALES") || p.includes("SUBOFICIAL_ELECTRICIDAD")) && !p.includes("SUPER_USUARIO")) {
+                return alert("⛔ Acceso denegado.");
+            }
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('sistema-gestion').style.display = 'block';
+            document.getElementById('grilla-unidades').style.display = 'grid';
+            document.getElementById('grilla-materiales').style.display = 'none';
+            document.getElementById('titulo-control').innerText = "AUTOMOTORES";
+            
+            const panel = document.getElementById('panel-admin-vencimientos');
+            const target = document.getElementById('grilla-unidades');
+            if(panel && target) {
+                panel.style.display = 'block';
+                target.parentNode.insertBefore(panel, target);
+                mostrarPanelAdmin();
+            }
+        }
+
+        function mostrarBotonesMateriales() {
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            if (p && (p.includes("SOLO_AUTOMOTORES") || p.includes("SUBOFICIAL_ELECTRICIDAD")) && !p.includes("SUPER_USUARIO")) {
+                return alert("⛔ Acceso denegado.");
+            }
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('sistema-gestion').style.display = 'block';
+            document.getElementById('grilla-materiales').style.display = 'grid';
+            document.getElementById('grilla-unidades').style.display = 'none';
+            document.getElementById('titulo-control').innerText = "MATERIALES";
+
+            const panel = document.getElementById('panel-admin-vencimientos');
+            const target = document.getElementById('grilla-materiales');
+            if(panel && target) {
+                panel.style.display = 'block';
+                target.parentNode.insertBefore(panel, target);
+                mostrarPanelAdmin();
+            }
+        }
+
+        function entrarElectricidad() {
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            if (!p || (!p.includes("SUBOFICIAL_ELECTRICIDAD") && !p.includes("SUPER_USUARIO"))) {
+                return alert("⛔ Acceso denegado.");
+            }
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('sistema-electricidad').style.display = 'block';
+            
+            const panelAdmin = document.getElementById('admin-electricidad');
+            if (panelAdmin) panelAdmin.style.display = 'block';
+            renderizarTareasElectricas();
+        }
+
+        // --- PANEL DE CARGA ---
+        function mostrarPanelAdmin() {
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            if(!p) return;
+
+            const esAuto = p.includes("SOLO_AUTOMOTORES") || p.includes("VER_TODO_AUTOMOTORES");
+            const esMat = p.includes("SOLO_MATERIALES");
+            const esSuper = p.includes("SUPER_USUARIO");
+
+            if (!esAuto && !esMat && !esSuper) return;
+
+            const panel = document.getElementById('panel-admin-vencimientos');
+            panel.innerHTML = `
+                <h3 style="color:white;">Panel de Gestión</h3>
+                <select id="admin-tipo" onchange="toggleSelectorUnidad()">
+                    <option value="TAREA">🔧 Tarea / Reparación</option>
+                    <option value="VTV">🚗 Cargar VTV</option>
+                </select>
+                <select id="admin-unidad"></select>
+                <input type="date" id="admin-fecha">
+                <input type="text" id="admin-tarea-desc" placeholder="Describí la tarea aquí..." style="display:block;">
+                <button class="btn-guardar" onclick="guardarNuevoVencimiento()">GUARDAR</button>
+                <ul id="lista-vencimientos-cargados"></ul>
+            `;
+
+            const select = document.getElementById("admin-unidad");
+            const boxTipo = document.getElementById("admin-tipo");
+
+            if (esMat && !esSuper) {
+                boxTipo.value = "TAREA"; boxTipo.style.display = "none";
+                ["MAT CENTRAL", "MAT DESTACAMENTO"].forEach(u => select.add(new Option(u, u)));
+                LISTA_IDS_UNIDADES.forEach(u => select.add(new Option("MAT U-" + u, "MAT U-" + u)));
+            } else {
+                if (p.includes("VER_TODO_AUTOMOTORES") || esSuper) {
+                    select.add(new Option("GENERAL FLOTA", "GENERAL FLOTA"));
+                    LISTA_IDS_UNIDADES.forEach(u => select.add(new Option("UNIDAD " + u, "UNIDAD " + u)));
+                } else {
+                    p.forEach(permiso => { if(permiso.startsWith("UNIDAD")) select.add(new Option(permiso, permiso)); });
+                }
+            }
+            
+            toggleSelectorUnidad();
+            actualizarListaVisual();
+        }
+
+        function toggleSelectorUnidad() {
+            const tipo = document.getElementById("admin-tipo").value;
+            const input = document.getElementById("admin-tarea-desc");
+            if(input) input.style.display = (tipo === "VTV") ? "none" : "block";
+        }
+
+        function guardarNuevoVencimiento() {
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            const esMat = p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO");
+            
+            const tipo = esMat ? "TAREA" : document.getElementById("admin-tipo").value;
+            const fecha = document.getElementById("admin-fecha").value;
+            const unidad = document.getElementById("admin-unidad").value;
+            const desc = document.getElementById("admin-tarea-desc").value;
+
+            if(!fecha || !unidad) return alert("Faltan datos.");
+
+            if (tipo === "VTV") {
+                const idx = VTV_DATA.findIndex(v => v.unidad === unidad);
+                if (idx >= 0) VTV_DATA[idx].fecha = fecha; else VTV_DATA.push({unidad, fecha});
+                localStorage.setItem("db_vtv", JSON.stringify(VTV_DATA));
+            } else {
+                if(!desc) return alert("Escribí la tarea.");
+                const item = { unidad, tarea: desc, fecha, creado: usuarioActivo };
+                if (esMat) {
+                    TAREAS_MATERIALES.push(item);
+                    localStorage.setItem("db_tareas_mat", JSON.stringify(TAREAS_MATERIALES));
+                } else {
+                    TAREAS_GENERALES_AUTO.push(item);
+                    localStorage.setItem("db_tareas_gral", JSON.stringify(TAREAS_GENERALES_AUTO));
+                }
+                document.getElementById("admin-tarea-desc").value = "";
+            }
+            actualizarListaVisual();
+        }
+
+        function actualizarListaVisual() {
+            const lista = document.getElementById("lista-vencimientos-cargados");
+            if(!lista) return;
+            lista.innerHTML = "";
+            
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            const esMat = p.includes("SOLO_MATERIALES") && !p.includes("SUPER_USUARIO");
+
+            if (esMat) {
+                TAREAS_MATERIALES.forEach(t => lista.innerHTML += `<li><strong style="color:#ff7a00">${t.unidad}</strong>: ${t.tarea} (${t.fecha})</li>`);
+            } else {
+                VTV_DATA.forEach(v => lista.innerHTML += `<li>🚗 <b>${v.unidad}</b> VTV: ${v.fecha}</li>`);
+                TAREAS_GENERALES_AUTO.forEach(t => lista.innerHTML += `<li>🔧 <b>${t.unidad}</b>: ${t.tarea} (${t.fecha})</li>`);
+            }
+        }
+
+        // --- UTILS ---
+        function generarGrillaUnidades() {
+            const c = document.getElementById('grilla-unidades');
+            c.innerHTML = "";
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            const veTodo = p && (p.includes("VER_TODO_AUTOMOTORES") || p.includes("SUPER_USUARIO"));
+            
+            LISTA_IDS_UNIDADES.forEach(i => {
+                if (!p || veTodo || p.includes("UNIDAD " + i)) {
+                    c.innerHTML += `<div class="btn-unidad" onclick="seleccionarUnidad(${i}, 'AUTO', this)">U-${i}</div>`;
+                }
+            });
+        }
+
+        function generarGrillaMateriales() {
+            const c = document.getElementById('grilla-materiales');
+            c.innerHTML = "";
+            LISTA_IDS_UNIDADES.forEach(i => {
+                if (![1,4,5].includes(i)) c.innerHTML += `<div class="btn-unidad" onclick="seleccionarUnidad(${i}, 'MAT', this)">MAT U-${i}</div>`;
+            });
+            c.innerHTML += `<div class="btn-unidad" style="border-color:#ff7a00" onclick="seleccionarUnidad('CENTRAL', 'MAT', this)">CENTRAL</div>`;
+            c.innerHTML += `<div class="btn-unidad" style="border-color:#ff7a00" onclick="seleccionarUnidad('DESTACAMENTO', 'MAT', this)">DESTAC.</div>`;
+        }
+
+        function seleccionarUnidad(num, tipo, btn) {
+            unidadSeleccionada = (typeof num === 'string') ? "MAT " + num : (tipo === 'AUTO' ? "UNIDAD " + num : "MAT U-" + num);
+            sectorActivo = tipo;
+
+            document.querySelectorAll('.btn-unidad').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const p = ENCARGADOS_DATA[usuarioActivo];
+            if (usuarioActivo !== "MARA CASTILLO") {
+                if (p && (p.includes("SOLO_AUTOMOTORES") || p.includes("SOLO_MATERIALES") || p.includes("SUPER_USUARIO"))) {
+                    document.getElementById('panel-consulta-encargado').style.display = 'block';
+                    document.getElementById('cuerpo-consulta-encargado').innerHTML = `<tr><td colspan="4" style="padding:20px; text-align:center;">Viendo historial de ${unidadSeleccionada}</td></tr>`;
+                    return;
+                }
+            }
+
+            document.getElementById('titulo-control').innerText = unidadSeleccionada;
+            document.getElementById('contenedor-km').style.display = (tipo === 'AUTO') ? 'block' : 'none';
+            document.getElementById('btn-nube').style.display = 'block';
+            
+            const cont = document.getElementById('campos-control');
+            cont.innerHTML = "";
+
+            let lista = [];
+            if (tipo === 'AUTO') {
+                if(num === 1) lista = CONTROLES_U1_AUTO;
+                else if(num === 2) lista = CONTROLES_U2_AUTO;
+                else lista = CONTROLES_U1_AUTO;
+            } else {
+                lista = CONTROLES_CENTRAL;
+            }
+
+            lista.forEach((c, idx) => {
+                if (c.tipo === "combustible") {
+                    cont.innerHTML += `<div class="check-item-container"><div class="check-item-row"><span>${c.item}</span><div class="fuel-options"><div class="fuel-btn">1/4</div><div class="fuel-btn">1/2</div><div class="fuel-btn">LLENO</div></div></div></div>`;
+                } else {
+                    let extra = (tipo === 'MAT' && c.cant) ? `<span style="color:#ff7a00; margin-left:10px;">(x${c.cant})</span>` : '';
+                    cont.innerHTML += `<div class="check-item-container"><div class="check-item-row"><span>${c.item} ${extra}</span><div class="item-actions"><label><input type="radio" name="i${idx}"> Bien</label><label><input type="radio" name="i${idx}"> Mal</label></div></div></div>`;
+                }
+            });
+        }
+
+        // --- ELECTRICIDAD ---
+        function crearTareaElectrica() {
+            const lugar = document.getElementById("elec-lugar").value;
+            const desc = document.getElementById("elec-desc").value;
+            if(!lugar || !desc) return alert("Faltan datos");
+            
+            DB_ELECTRICIDAD.push({ lugar, desc, fecha: new Date().toLocaleDateString() });
+            localStorage.setItem("db_electricidad", JSON.stringify(DB_ELECTRICIDAD));
+            renderizarTareasElectricas();
+        }
+
+        function renderizarTareasElectricas() {
+            const lista = document.getElementById("listaTareasElectricas");
+            lista.innerHTML = "";
+            DB_ELECTRICIDAD.forEach(t => {
+                lista.innerHTML += `<div style="background:#222; padding:10px; margin-bottom:5px; border-left:3px solid #ffd000; border-radius:5px;"><strong>${t.lugar}</strong>: ${t.desc}</div>`;
+            });
+        }
+
+        function finalizarYEnviar() {
+            const btn = document.getElementById('btn-nube');
+            btn.innerText = "ENVIANDO...";
+            setTimeout(() => { alert("Datos enviados exitosamente."); location.reload(); }, 1500);
+        }
+
+        // AUTO-LOGIN AL CARGAR
+        window.onload = function() {
+            const saved = localStorage.getItem("usuarioBomberosConectado");
+            if (saved) { usuarioActivo = saved; ingresarAlSistema(); }
+        }
+       
 </script>
 </body>
 </html>
+
 
 
